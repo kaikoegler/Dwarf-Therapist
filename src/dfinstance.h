@@ -90,7 +90,8 @@ public:
     // memory reading
     template<typename T> T read_mem(VPTR addr, bool no_failsafe = false) {
         T buf;
-        if (read_raw(addr, sizeof(T), &buf) != sizeof(T))
+        size_t rv = read_raw(addr, sizeof(T), &buf);
+        if (!no_failsafe && rv != sizeof(T))
             buf = T();
         return buf;
     }

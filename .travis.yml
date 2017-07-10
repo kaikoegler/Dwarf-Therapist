@@ -1,5 +1,13 @@
-sudo: required
+matrix:
+    include:
+        - os: osx
+          before_install:
+            - brew update
+            - brew outdated qt || brew upgrade qt
+    allow_failures:
+        - os: osx
 dist: trusty
+sudo: false
 language: cpp
 compiler:
     - clang
@@ -7,12 +15,17 @@ compiler:
 env:
     global:
         - CXXFLAGS="-Wall -Wextra -Werror"
-before_install:
-    - sudo apt-get update -q
-    - sudo apt-get install -qy qtbase5-dev qtbase5-dev-tools qtdeclarative5-dev
+addons:
+    apt:
+        packages:
+            - cmake
+            - ninja
+            - qtbase5-dev
+            - qtbase5-dev-tools
+            - qtdeclarative5-dev
 script:
-    - cmake .
-    - make -j3 $TARGET
+    - cmake -GNinja .
+    - ninja
 notifications:
     irc:
         on_success: change
