@@ -35,13 +35,13 @@ class Material : public QObject {
     Q_OBJECT
 public:
     Material(QObject *parent = 0);
-    Material(DFInstance *df, VIRTADDR address, int index, bool inorganic = false, QObject *parent = 0);
+    Material(DFInstance *df, VPTR address, int index, bool inorganic = false, QObject *parent = 0);
     virtual ~Material();
 
-    static Material* get_material(DFInstance *df, const VIRTADDR &address, int index, bool inorganic = false, QObject *parent = 0);
+    static Material* get_material(DFInstance *df, const VPTR &address, int index, bool inorganic = false, QObject *parent = 0);
 
     //! Return the memory address (in hex) of this Material in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     QString get_material_name(MATERIAL_STATES state);
     int id() {return m_index;}
@@ -73,8 +73,8 @@ public:
 
 private:
     int m_index;
-    VIRTADDR m_address;
-    VIRTADDR m_flag_address;
+    VPTR m_address;
+    VPTR m_flag_address;
     DFInstance * m_df;
     MemoryLayout * m_mem;
     FlagArray m_flags;

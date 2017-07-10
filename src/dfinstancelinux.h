@@ -32,12 +32,12 @@ public:
     virtual ~DFInstanceLinux();
     void find_running_copy();
 
-    USIZE read_raw_ptrace(const VIRTADDR addr, const USIZE bytes, void *buffer);
-    USIZE read_raw(const VIRTADDR addr, const USIZE bytes, void *buffer);
+    size_t read_raw_ptrace(const VPTR addr, const size_t bytes, void *buffer);
+    size_t read_raw(const VPTR addr, const size_t bytes, void *buffer);
 
     // Writing
-    USIZE write_raw_ptrace(const VIRTADDR addr, const USIZE bytes, const void *buffer);
-    USIZE write_raw(const VIRTADDR addr, const USIZE bytes, const void *buffer);
+    size_t write_raw_ptrace(const VPTR addr, const size_t bytes, const void *buffer);
+    size_t write_raw(const VPTR addr, const size_t bytes, const void *buffer);
 
     bool attach();
     bool detach();
@@ -46,19 +46,17 @@ protected:
     bool set_pid();
 
 private:
-    SSIZE process_vm(long number, const VIRTADDR addr
-                     , const USIZE bytes, void *buffer);
     int wait_for_stopped();
+    ssize_t process_vm(long number, const VPTR addr, const size_t bytes, void *buffer);
     long remote_syscall(int syscall_id,
                           long arg0 = 0, long arg1 = 0, long arg2 = 0,
                           long arg3 = 0, long arg4 = 0, long arg5 = 0);
 
-    VIRTADDR mmap_area(VIRTADDR start, USIZE size);
-    VIRTADDR alloc_chunk(USIZE size);
+    VPTR mmap_area(VPTR start, size_t size);
+    VPTR alloc_chunk(size_t size);
 
     QFile m_memory_file;
-    VIRTADDR m_inject_addr;
-    VIRTADDR m_alloc_start, m_alloc_end;
+    VPTR m_alloc_start, m_alloc_end;
     bool m_warned_pvm;
 };
 

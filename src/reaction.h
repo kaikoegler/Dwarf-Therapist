@@ -32,12 +32,12 @@ class MemoryLayout;
 class Reaction : public QObject {
     Q_OBJECT
 public:
-    Reaction(DFInstance *df, VIRTADDR address, QObject *parent = 0);
+    Reaction(DFInstance *df, VPTR address, QObject *parent = 0);
     virtual ~Reaction();
 
-    static Reaction* get_reaction(DFInstance *df, const VIRTADDR &address);
+    static Reaction* get_reaction(DFInstance *df, const VPTR &address);
 
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     QString name() {return m_name;}
     short skill_id() {return m_skill_id;}
@@ -46,7 +46,7 @@ public:
     void load_data();
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     QString m_tag;
     QString m_name;
     short m_skill_id;

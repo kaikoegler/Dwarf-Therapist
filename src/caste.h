@@ -36,11 +36,11 @@ class Race;
 class Caste : public QObject {
     Q_OBJECT
 public:
-    Caste(DFInstance *df, VIRTADDR address, Race *r, QObject *parent = 0);
+    Caste(DFInstance *df, VPTR address, Race *r, QObject *parent = 0);
     virtual ~Caste();
 
     //! Return the memory address (in hex) of this creature in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     struct att_range{
         QList<int> raw_bins;
@@ -75,7 +75,7 @@ public:
     int adult_size(){return m_adult_size;}
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     Race *m_race;
     QString m_tag;
     QString m_name;
@@ -104,8 +104,8 @@ private:
 
     void read_caste();
 
-    VIRTADDR m_body_addr;
-    QVector<VIRTADDR> m_body_parts_addr;
+    VPTR m_body_addr;
+    QVector<VPTR> m_body_parts_addr;
     QHash<int, BodyPart*> m_body_parts;
 
 };

@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 #include <QTreeWidgetItem>
 
-Squad::Squad(int id, DFInstance *df, VIRTADDR address, QObject *parent)
+Squad::Squad(int id, DFInstance *df, VPTR address, QObject *parent)
     : QObject(parent)
     , m_address(address)
     , m_id(id)
@@ -83,7 +83,7 @@ void Squad::read_name() {
 
 
 void Squad::read_members() {
-    VIRTADDR addr;
+    VPTR addr;
     m_members_addr = m_df->enumerate_vector(m_address + m_mem->squad_offset("members"));
     int member_count = 0;
     foreach(addr, m_members_addr){
@@ -129,7 +129,7 @@ void Squad::read_members() {
 
         m_uniforms.insert(position,u);
         LOGD << "checking orders for position" << position;
-        foreach(VIRTADDR ord_addr, m_df->enumerate_vector(addr+m_mem->squad_offset("orders"))){
+        foreach(VPTR ord_addr, m_df->enumerate_vector(addr+m_mem->squad_offset("orders"))){
             read_order(ord_addr, histfig_id);
         }
         position++;
@@ -140,20 +140,20 @@ void Squad::read_orders(){
     //read the squad order
     LOGD << "checking squad order";
     m_squad_order = ORD_UNKNOWN;
-    foreach(VIRTADDR addr, m_df->enumerate_vector(m_address + m_mem->squad_offset("orders"))){
+    foreach(VPTR addr, m_df->enumerate_vector(m_address + m_mem->squad_offset("orders"))){
         read_order(addr,-1);
     }
 
     LOGD << "checking squad schedules";
 
     //read the scheduled orders
-    QVector<VIRTADDR> schedules = m_df->enumerate_vector(m_address + m_mem->squad_offset("schedules"));
+    QVector<VPTR> schedules = m_df->enumerate_vector(m_address + m_mem->squad_offset("schedules"));
     int32_t idx = m_df->read_mem<int32_t>(m_address + m_mem->squad_offset("alert"));
-    USIZE sched_size = m_mem->squad_offset("sched_size");
-    USIZE month = m_df->current_year_time() / m_df->ticks_per_month;
-    VIRTADDR base_addr = schedules.at(idx) + (sched_size * month);
-    QVector<VIRTADDR> orders = m_df->enumerate_vector(base_addr + m_mem->squad_offset("sched_orders"));
-    QVector<VIRTADDR> assigned = m_df->enumerate_vector(base_addr + m_mem->squad_offset("sched_assign"));
+    size_t sched_size = m_mem->squad_offset("sched_size");
+    size_t month = m_df->current_year_time() / m_df->ticks_per_month;
+    VPTR base_addr = schedules.at(idx) + (sched_size * month);
+    QVector<VPTR> orders = m_df->enumerate_vector(base_addr + m_mem->squad_offset("sched_orders"));
+    QVector<VPTR> assigned = m_df->enumerate_vector(base_addr + m_mem->squad_offset("sched_assign"));
     for(int pos = 0; pos < assigned.count(); pos ++){
         int order_id = m_df->read_int(assigned.at(pos));
         int histfig_id = m_members.value(pos);
@@ -169,8 +169,8 @@ void Squad::read_orders(){
     }
 }
 
-void Squad::read_order(VIRTADDR addr, int histfig_id){
-    VIRTADDR vtable_addr = m_df->read_addr(addr);
+void Squad::read_order(VPTR addr, int histfig_id){
+    VPTR vtable_addr = m_df->read_addr(addr);
     int raw_type = m_df->read_int(m_df->read_addr(vtable_addr+0xc)+m_df->VM_TYPE_OFFSET());
     SQ_ORDER_TYPE ord_type = ORD_MOVE;
     if(raw_type > 0){
@@ -190,9 +190,9 @@ void Squad::read_order(VIRTADDR addr, int histfig_id){
     }
 }
 
-void Squad::read_equip_category(VIRTADDR vec_addr, ITEM_TYPE itype, Uniform *u){
-    QVector<VIRTADDR> uniform_items = m_df->enumerate_vector(vec_addr);
-    foreach(VIRTADDR uItem_addr, uniform_items){
+void Squad::read_equip_category(VPTR vec_addr, ITEM_TYPE itype, Uniform *u){
+    QVector<VPTR> uniform_items = m_df->enumerate_vector(vec_addr);
+    foreach(VPTR uItem_addr, uniform_items){
         u->add_uniform_item(uItem_addr,itype,1);
     }
     //u->add_equip_count(itype,uniform_items.count());
@@ -241,7 +241,7 @@ void Squad::assign_to_squad(Dwarf *d, bool committing){
             //something has changed in the game, this position is no longer available. try to find an empty position
             position = find_position(-1);
         }
-        VIRTADDR addr = 0;
+        VPTR addr = 0;
         if(position >= 0){
             addr = m_members_addr.at(position);
         }
@@ -270,7 +270,7 @@ bool Squad::remove_from_squad(Dwarf *d, bool committing){
 
     if(position >= 0){
         if(committing){
-            VIRTADDR addr = m_members_addr.at(position);
+            VPTR addr = m_members_addr.at(position);
             if(addr <= 0)
                 return false;
 

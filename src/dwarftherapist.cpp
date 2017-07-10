@@ -575,41 +575,37 @@ void DwarfTherapist::load_game_translation_tables(DFInstance *df) {
     m_generic_words.clear();
     m_dwarf_words.clear();
 
-    VIRTADDR generic_lang_table = df->memory_layout()->address("language_vector");
-    VIRTADDR translation_vector = df->memory_layout()->address("translation_vector");
-    VIRTADDR word_table_offset = df->memory_layout()->language_offset("word_table");
+    VPTR generic_lang_table = df->memory_layout()->address("language_vector");
+    VPTR translation_vector = df->memory_layout()->address("translation_vector");
+    VPTRDIFF word_table_offset = df->memory_layout()->language_offset("word_table");
     TRACE << "LANGUAGES VECTOR" << hexify(translation_vector);
     TRACE << "GENERIC LANGUAGE VECTOR" << hexify(generic_lang_table);
     TRACE << "WORD TABLE OFFSET" << hexify(word_table_offset);
 
     df->attach();
-    if (generic_lang_table != 0xFFFFFFFF && generic_lang_table != 0) {
-        LOGI << "Loading generic strings from" << hex << generic_lang_table;
-        QVector<VIRTADDR> generic_words = df->enumerate_vector(generic_lang_table);
-        LOGI << "generic words" << generic_words.size();
-        foreach(VIRTADDR word_ptr, generic_words) {
-            m_generic_words << df->read_string(word_ptr);
-            m_language << Word::get_word(df, word_ptr);
-        }
+    LOGI << "Loading generic strings from" << hex << generic_lang_table;
+    QVector<VPTR> generic_words = df->enumerate_vector(generic_lang_table);
+    LOGI << "generic words" << generic_words.size();
+    foreach(VPTR word_ptr, generic_words) {
+        m_generic_words << df->read_string(word_ptr);
+        m_language << Word::get_word(df, word_ptr);
     }
 
-    if (translation_vector != 0xFFFFFFFF && translation_vector != 0) {
-        QVector<VIRTADDR> languages = df->enumerate_vector(translation_vector);
-        uint dwarf_entry = 0;
-        foreach(uint lang, languages) {
-            QString race_name = df->read_string(lang);
-            LOGI << "FOUND LANG ENTRY" << hex << lang << race_name;
-            if (race_name == "DWARF")
-                dwarf_entry = lang;
-        }
-        uint dwarf_lang_table = dwarf_entry + word_table_offset;
-        LOGI << "Loading dwarf strings from" << hex << dwarf_lang_table;
-        QVector<VIRTADDR> dwarf_words = df->enumerate_vector(dwarf_lang_table);
-        LOGI << "dwarf words" << dwarf_words.size();
+    auto languages = df->enumerate_vector(translation_vector);
+    VPTR dwarf_entry = 0;
+    foreach(auto lang, languages) {
+        QString race_name = df->read_string(lang);
+        LOGI << "FOUND LANG ENTRY" << hex << lang << race_name;
+        if (race_name == "DWARF")
+            dwarf_entry = lang;
+    }
+    VPTR dwarf_lang_table = dwarf_entry + word_table_offset;
+    LOGI << "Loading dwarf strings from" << hex << dwarf_lang_table;
+    QVector<VPTR> dwarf_words = df->enumerate_vector(dwarf_lang_table);
+    LOGI << "dwarf words" << dwarf_words.size();
 
-        foreach(VIRTADDR word_ptr, dwarf_words) {
-            m_dwarf_words << df->read_string(word_ptr);
-        }
+    foreach(VPTR word_ptr, dwarf_words) {
+        m_dwarf_words << df->read_string(word_ptr);
     }
     df->detach();
 }

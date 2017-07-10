@@ -25,7 +25,7 @@ public:
         m_bp_name = "Unknown";
     }
 
-    BodyPart(DFInstance *df, Race *r, VIRTADDR bp_addr, int bp_id)
+    BodyPart(DFInstance *df, Race *r, VPTR bp_addr, int bp_id)
         : m_df(df)
         , m_race(r)
         , bp_addr(bp_addr)
@@ -59,7 +59,7 @@ public:
 
     QHash<int, BodyPartLayer> get_layers() {
         int idx = 0;
-        foreach(VIRTADDR addr, m_layers_addr){
+        foreach(VPTR addr, m_layers_addr){
             if(!m_layers.contains(idx)){
                 m_layers.insert(idx, BodyPartLayer(addr,idx,m_df,m_race));
             }
@@ -77,20 +77,20 @@ public:
 private:
     DFInstance *m_df;
     Race *m_race;
-    VIRTADDR bp_addr;
+    VPTR bp_addr;
     int m_body_part_id;
     int m_parent_id;
 
     QString m_bp_name;
     QString m_token;
     QHash<int, BodyPartLayer> m_layers;
-    QVector<VIRTADDR> m_layers_addr;
+    QVector<VPTR> m_layers_addr;
     FlagArray m_flags;
 
     void build_bp_name(){
         int bp_count = m_df->read_int(bp_addr + m_df->memory_layout()->health_offset("number"));
-        QVector<VIRTADDR> sing_names = m_df->enumerate_vector(bp_addr + m_df->memory_layout()->health_offset("names_vector"));
-        QVector<VIRTADDR> plural_names = m_df->enumerate_vector(bp_addr + m_df->memory_layout()->health_offset("names_plural_vector"));
+        QVector<VPTR> sing_names = m_df->enumerate_vector(bp_addr + m_df->memory_layout()->health_offset("names_vector"));
+        QVector<VPTR> plural_names = m_df->enumerate_vector(bp_addr + m_df->memory_layout()->health_offset("names_plural_vector"));
 
         QString bp_name = m_df->read_string(sing_names.at(0));
         QString bp_name_plural = m_df->read_string(plural_names.at(0));

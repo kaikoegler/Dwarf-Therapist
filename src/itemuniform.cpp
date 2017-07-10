@@ -32,7 +32,7 @@ ItemUniform::ItemUniform(const Item &baseItem)
     read_def();
 }
 
-ItemUniform::ItemUniform(DFInstance *df, VIRTADDR item_addr)
+ItemUniform::ItemUniform(DFInstance *df, VPTR item_addr)
     :Item(df,item_addr)
     , m_item_def(0)
 {
@@ -89,7 +89,7 @@ void ItemUniform::read_def(){
         }
 
         short subtype = m_uniform_def->item_subtype();
-        QVector<VIRTADDR> item_defs = m_df->get_itemdef_vector(m_iType);
+        QVector<VPTR> item_defs = m_df->get_itemdef_vector(m_iType);
         if(!item_defs.empty() && (subtype >=0 && subtype < item_defs.count())){
             //get sub-type name
             m_item_def = new ItemGenericSubtype(m_iType,m_df,item_defs.at(subtype),this);

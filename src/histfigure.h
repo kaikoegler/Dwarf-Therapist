@@ -46,15 +46,15 @@ public:
     void write_nick_name(const QString new_nick);
     bool has_fake_identity();
 
-    VIRTADDR address() const {return m_address;}
-    VIRTADDR info_address() const {return m_fig_info_addr;}
+    VPTR address() const {return m_address;}
+    VPTR info_address() const {return m_fig_info_addr;}
 
     int id(){return m_id;}
     QString fake_name(){return m_fake_name;}
     QString fake_nick_name(){return m_fake_nick;}
-    VIRTADDR fake_birth_year_offset(){return m_fake_birth_year;}
-    VIRTADDR fake_birth_time_offset(){return m_fake_birth_time;}
-    VIRTADDR fake_name_offset(){return m_fake_name_addr;}
+    VPTR fake_birth_year_offset(){return m_fake_birth_year;}
+    VPTR fake_birth_time_offset(){return m_fake_birth_time;}
+    VPTR fake_name_offset(){return m_fake_name_addr;}
 
     int total_kills();
     int kill_count(bool notable = false);
@@ -65,16 +65,16 @@ public:
 private:
     DFInstance *m_df;
     MemoryLayout *m_mem;
-    VIRTADDR m_address;
-    VIRTADDR m_fig_info_addr;
-    VIRTADDR m_fake_ident_addr;
-    VIRTADDR m_fake_name_addr;
-    QList<VIRTADDR> m_nick_addrs;
+    VPTR m_address;
+    VPTR m_fig_info_addr;
+    VPTR m_fake_ident_addr;
+    VPTR m_fake_name_addr;
+    QList<VPTR> m_nick_addrs;
     int m_id;
     QString m_fake_name;
     QString m_fake_nick;
-    VIRTADDR m_fake_birth_year;
-    VIRTADDR m_fake_birth_time;
+    VPTR m_fake_birth_year;
+    VPTR m_fake_birth_time;
 
     QList<kill_info> m_notable_kills;
     QList<kill_info> m_other_kills;

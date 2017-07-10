@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "gamedatareader.h"
 #include "dwarfjob.h"
 
-ActivityEvent::ActivityEvent(DFInstance *df, VIRTADDR addr, QHash<int, QPair<int,QString> > *histfig_actions, QObject *parent)
+ActivityEvent::ActivityEvent(DFInstance *df, VPTR addr, QHash<int, QPair<int,QString> > *histfig_actions, QObject *parent)
     :QObject(parent)
     , m_df(df)
     , m_address(addr)
@@ -67,8 +67,8 @@ void ActivityEvent::read_data(){
             //vectors after the participants has id numbers that correspond to either the artifact being copied, or the drink/food being served
         }else{
             GameDataReader *gdr = GameDataReader::ptr();
-            USIZE participant_offset = mem->activity_offset("participants");
-            VIRTADDR participant_addr = m_address + participant_offset;
+            size_t participant_offset = mem->activity_offset("participants");
+            VPTR participant_addr = m_address + participant_offset;
             QSet<qint32> participants = m_df->enum_vec<qint32>(participant_addr).toList().toSet();
 
             foreach(qint32 histfig_id,participants){
@@ -97,7 +97,7 @@ void ActivityEvent::read_data(){
                 if(event_type == PRAY){
                     short sphere_id = m_df->read_short(m_address + mem->activity_offset("pray_sphere"));
                     if(sphere_id == -1){ //no sphere indicates prayer
-                        VIRTADDR histfig_addr = m_df->find_historical_figure(m_df->read_short(m_address + mem->activity_offset("pray_deity")));
+                        VPTR histfig_addr = m_df->find_historical_figure(m_df->read_short(m_address + mem->activity_offset("pray_deity")));
                         if(histfig_addr){
                             add_action(histfig_id,event_type,
                                        tr("Pray to %1").arg(m_df->get_name(histfig_addr + m_df->memory_layout()->hist_figure_offset("hist_name"),true)));
@@ -117,8 +117,8 @@ void ActivityEvent::read_data(){
                 }
                 if(event_type == PERFORM){
                     ACT_PERF_TYPE p_type = static_cast<ACT_PERF_TYPE>(m_df->read_int(m_address + mem->activity_offset("perf_type")));
-                    QVector<VIRTADDR> p_participants = m_df->enumerate_vector(m_address + mem->activity_offset("perf_participants"));
-                    foreach(VIRTADDR p_addr, p_participants){
+                    QVector<VPTR> p_participants = m_df->enumerate_vector(m_address + mem->activity_offset("perf_participants"));
+                    foreach(VPTR p_addr, p_participants){
                         int id = m_df->read_int(p_addr + mem->activity_offset("perf_histfig"));
                         if(m_histfig_actions->contains(id)){
                             continue;

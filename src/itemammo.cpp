@@ -31,7 +31,7 @@ ItemAmmo::ItemAmmo(const Item &baseItem)
     read_def();
 }
 
-ItemAmmo::ItemAmmo(DFInstance *df, VIRTADDR item_addr)
+ItemAmmo::ItemAmmo(DFInstance *df, VPTR item_addr)
     : Item(df,item_addr)
     , m_ammo_def(0)
 {

@@ -132,12 +132,12 @@ DFInstance * DFInstance::newInstance(){
 #endif
 }
 
-bool DFInstance::check_vector(const VIRTADDR start, const VIRTADDR end, const VIRTADDR addr){
+bool DFInstance::check_vector(const VPTR start, const VPTR end, const VPTR addr){
     TRACE << "beginning vector enumeration at" << hex << addr;
     TRACE << "start of vector" << hex << start;
     TRACE << "end of vector" << hex << end;
 
-    int entries = (end - start) / sizeof(VIRTADDR);
+    int entries = (end - start) / sizeof(VPTR);
     TRACE << "there appears to be" << entries << "entries in this vector";
 
     bool is_acceptable_size = true;
@@ -203,44 +203,44 @@ DFInstance::~DFInstance() {
     delete m_heartbeat_timer;
 }
 
-QVector<VIRTADDR> DFInstance::enumerate_vector(const VIRTADDR addr) {
-    return enum_vec<VIRTADDR>(addr);
+QVector<VPTR> DFInstance::enumerate_vector(const VPTR addr) {
+    return enum_vec<VPTR>(addr);
 }
 
-QVector<qint16> DFInstance::enumerate_vector_short(const VIRTADDR addr){
+QVector<qint16> DFInstance::enumerate_vector_short(const VPTR addr){
     return enum_vec<qint16>(addr);
 }
 
-USIZE DFInstance::read_raw(VIRTADDR addr, USIZE bytes, QByteArray &buffer) {
+size_t DFInstance::read_raw(VPTR addr, size_t bytes, QByteArray &buffer) {
     buffer.resize(bytes);
     return read_raw(addr, bytes, buffer.data());
 }
 
-BYTE DFInstance::read_byte(VIRTADDR addr) {
-    return read_mem<BYTE>(addr);
+quint8 DFInstance::read_byte(VPTR addr) {
+    return read_mem<quint8>(addr);
 }
 
-WORD DFInstance::read_word(VIRTADDR addr) {
-    return read_mem<WORD>(addr);
+quint32 DFInstance::read_word(VPTR addr) {
+    return read_mem<quint32>(addr);
 }
 
-VIRTADDR DFInstance::read_addr(VIRTADDR addr) {
-    return read_mem<VIRTADDR>(addr);
+VPTR DFInstance::read_addr(VPTR addr) {
+    return read_mem<VPTR>(addr);
 }
 
-qint16 DFInstance::read_short(VIRTADDR addr) {
+qint16 DFInstance::read_short(VPTR addr) {
     return read_mem<qint16>(addr);
 }
 
-qint32 DFInstance::read_int(VIRTADDR addr) {
+qint32 DFInstance::read_int(VPTR addr) {
     return read_mem<qint32>(addr);
 }
 
-USIZE DFInstance::write_int(VIRTADDR addr, const int val) {
+size_t DFInstance::write_int(VPTR addr, const int val) {
     return write_raw(addr, sizeof(int), &val);
 }
 
-USIZE DFInstance::write_raw(const VIRTADDR addr, const USIZE bytes, const QByteArray &buffer) {
+size_t DFInstance::write_raw(const VPTR addr, const size_t bytes, const QByteArray &buffer) {
     return write_raw(addr, bytes, buffer.data());
 }
 
@@ -268,7 +268,7 @@ void DFInstance::load_game_data()
     load_main_vectors();
 
     //load the currently played race before races and castes so we can load additional information for the current race being played
-    VIRTADDR dwarf_race_index_addr = m_layout->address("dwarf_race_index");
+    VPTR dwarf_race_index_addr = m_layout->address("dwarf_race_index");
     LOGD << "dwarf race index" << hexify(dwarf_race_index_addr);
     // which race id is dwarven?
     m_dwarf_race_id = read_short(dwarf_race_index_addr);
@@ -285,15 +285,15 @@ void DFInstance::load_game_data()
     load_fortress_name();
 }
 
-QString DFInstance::get_language_word(VIRTADDR addr){
+QString DFInstance::get_language_word(VPTR addr){
     return m_languages->language_word(addr);
 }
 
-QString DFInstance::get_translated_word(VIRTADDR addr){
+QString DFInstance::get_translated_word(VPTR addr){
     return m_languages->english_word(addr);
 }
 
-QString DFInstance::get_name(VIRTADDR addr, bool translate){
+QString DFInstance::get_name(VPTR addr, bool translate){
     QString f_name = read_string(addr);
     QString n_name = read_string(addr + m_layout->dwarf_offset("nick_name"));
     if(!n_name.isEmpty()){
@@ -316,7 +316,7 @@ QVector<Dwarf*> DFInstance::load_dwarves() {
     }
 
     // we're connected, make sure we have good addresses
-    VIRTADDR creature_vector = m_layout->address("creature_vector");
+    VPTR creature_vector = m_layout->address("creature_vector");
 
     //current race's offset was bad
     if (!DT->arena_mode() && m_dwarf_race_id < 0){
@@ -324,7 +324,7 @@ QVector<Dwarf*> DFInstance::load_dwarves() {
     }
 
     // both necessary addresses are valid, so let's try to read the creatures
-    VIRTADDR dwarf_civ_idx_addr = m_layout->address("dwarf_civ_index");
+    VPTR dwarf_civ_idx_addr = m_layout->address("dwarf_civ_index");
     LOGD << "loading creatures from " << hexify(creature_vector);
 
     emit progress_message(tr("Loading Units"));
@@ -333,7 +333,7 @@ QVector<Dwarf*> DFInstance::load_dwarves() {
     m_dwarf_civ_id = read_int(dwarf_civ_idx_addr);
     LOGD << "civilization id:" << m_dwarf_civ_id;
 
-    QVector<VIRTADDR> creatures_addrs = get_creatures();
+    QVector<VPTR> creatures_addrs = get_creatures();
 
     emit progress_range(0, creatures_addrs.size()-1);
     TRACE << "FOUND" << creatures_addrs.size() << "creatures";
@@ -342,7 +342,7 @@ QVector<Dwarf*> DFInstance::load_dwarves() {
     if (!creatures_addrs.empty()) {
         QPointer<Dwarf> d;
         int progress_count = 0;
-        foreach(VIRTADDR creature_addr, creatures_addrs) {
+        foreach(VPTR creature_addr, creatures_addrs) {
             d = QPointer<Dwarf>(new Dwarf(this, creature_addr,this));
             if(!d.isNull() && d->is_valid()){
                 dwarves.append(d);
@@ -576,17 +576,15 @@ void DFInstance::load_role_ratings(){
 void DFInstance::load_reactions(){
     attach();
     //LOGI << "Reading reactions names...";
-    VIRTADDR reactions_vector = m_layout->address("reactions_vector");
-    if(m_layout->is_valid_address(reactions_vector)){
-        QVector<VIRTADDR> reactions = enumerate_vector(reactions_vector);
-        //TRACE << "FOUND" << reactions.size() << "reactions";
-        //emit progress_range(0, reactions.size()-1);
-        if (!reactions.empty()) {
-            foreach(VIRTADDR reaction_addr, reactions) {
-                Reaction* r = Reaction::get_reaction(this, reaction_addr);
-                m_reactions.insert(r->tag(), r);
-                //emit progress_value(i++);
-            }
+    VPTR reactions_vector = m_layout->address("reactions_vector");
+    QVector<VPTR> reactions = enumerate_vector(reactions_vector);
+    //TRACE << "FOUND" << reactions.size() << "reactions";
+    //emit progress_range(0, reactions.size()-1);
+    if (!reactions.empty()) {
+        foreach(VPTR reaction_addr, reactions) {
+            Reaction* r = Reaction::get_reaction(this, reaction_addr);
+            m_reactions.insert(r->tag(), r);
+            //emit progress_value(i++);
         }
     }
     detach();
@@ -595,8 +593,8 @@ void DFInstance::load_reactions(){
 void DFInstance::load_main_vectors(){
     //material templates
     LOGD << "reading material templates";
-    QVector<VIRTADDR> temps = enumerate_vector(m_layout->address("material_templates_vector"));
-    foreach(VIRTADDR addr, temps){
+    QVector<VPTR> temps = enumerate_vector(m_layout->address("material_templates_vector"));
+    foreach(VPTR addr, temps){
         m_material_templates.insert(read_string(addr),addr);
     }
 
@@ -629,22 +627,22 @@ void DFInstance::load_main_vectors(){
     m_dance_vector = enumerate_vector(m_layout->address("dance_forms_vector"));
 
     LOGD << "reading base materials";
-    VIRTADDR addr = m_layout->address("base_materials");
+    VPTR addr = m_layout->address("base_materials");
     int i = 0;
     for(i = 0; i < 256; i++){
-        VIRTADDR mat_addr = read_addr(addr);
+        VPTR mat_addr = read_addr(addr);
         if(mat_addr > 0){
             Material* m = Material::get_material(this, mat_addr, i, false, this);
             m_base_materials.append(m);
         }
-        addr += sizeof(VIRTADDR);
+        addr += sizeof(VPTR );
     }
 
     //inorganics
     LOGD << "reading inorganics";
     addr = m_layout->address("inorganics_vector");
     i = 0;
-    foreach(VIRTADDR mat, enumerate_vector(addr)){
+    foreach(VPTR mat, enumerate_vector(addr)){
         //inorganic_raw.material
         Material* m = Material::get_material(this, mat, i, true, this);
         m_inorganics_vector.append(m);
@@ -655,8 +653,8 @@ void DFInstance::load_main_vectors(){
     LOGD << "reading plants";
     addr = m_layout->address("plants_vector");
     i = 0;
-    QVector<VIRTADDR> vec = enumerate_vector(addr);
-    foreach(VIRTADDR plant, vec){
+    QVector<VPTR> vec = enumerate_vector(addr);
+    foreach(VPTR plant, vec){
         Plant* p = Plant::get_plant(this, plant, i);
         m_plants_vector.append(p);
         i++;
@@ -687,9 +685,9 @@ void DFInstance::load_item_defs(){
 
     foreach(ITEM_TYPE itype, Item::items_with_subtypes()){
         LOGD << "   reading item types for type" << itype;
-        QVector<VIRTADDR> addresses = m_itemdef_vectors.value(itype);
+        QVector<VPTR> addresses = m_itemdef_vectors.value(itype);
         if (!addresses.empty()) {
-            foreach(VIRTADDR addr, addresses) {
+            foreach(VPTR addr, addresses) {
                 if(Item::is_armor_type(itype)){
                     m_item_subtypes[itype].append(new ItemArmorSubtype(itype,this,addr,this));
                 }else if(itype == WEAPON){
@@ -719,11 +717,11 @@ ItemSubtype *DFInstance::get_item_subtype(ITEM_TYPE itype, int sub_type){
 
 void DFInstance::load_races_castes(){
     LOGD << "reading races and castes";
-    VIRTADDR races_vector_addr = m_layout->address("races_vector");
-    QVector<VIRTADDR> races = enumerate_vector(races_vector_addr);
+    VPTR races_vector_addr = m_layout->address("races_vector");
+    QVector<VPTR> races = enumerate_vector(races_vector_addr);
     int idx = 0;
     if (!races.empty()) {
-        foreach(VIRTADDR race_addr, races) {
+        foreach(VPTR race_addr, races) {
             m_races.append(Race::get_race(this, race_addr, idx));
             idx++;
         }
@@ -738,10 +736,10 @@ const QString DFInstance::fortress_name(){
 }
 
 void DFInstance::refresh_data(){
-    VIRTADDR current_year = m_layout->address("current_year");
+    VPTR current_year = m_layout->address("current_year");
     LOGD << "loading current year from" << hexify(current_year);
 
-    VIRTADDR current_year_tick = m_layout->address("cur_year_tick");
+    VPTR current_year_tick = m_layout->address("cur_year_tick");
     m_cur_year_tick = read_int(current_year_tick);
     m_current_year = read_word(current_year);
     LOGI << "current year:" << m_current_year;
@@ -787,7 +785,7 @@ void DFInstance::load_fortress(){
         delete(m_fortress);
         m_fortress = 0;
     }
-    VIRTADDR addr_fortress = m_layout->address("fortress_entity");
+    VPTR addr_fortress = m_layout->address("fortress_entity");
     m_fortress = FortressEntity::get_entity(this,read_addr(addr_fortress));
     if(m_fortress_name_translated.isEmpty())
         load_fortress_name();
@@ -798,11 +796,11 @@ void DFInstance::load_fortress_name(){
     //load the fortress name
     //fortress name is actually in the world data's site list
     //we can access a list of the currently active sites and read the name from there
-    VIRTADDR world_data_addr = read_addr(m_layout->address("world_data"));
+    VPTR world_data_addr = read_addr(m_layout->address("world_data"));
     LOGD << "   reading sites...";
-    QVector<VIRTADDR> sites = enumerate_vector(world_data_addr + m_layout->address("active_sites_vector",false));
-    foreach(VIRTADDR site, sites){
-        short t = read_short(site + m_layout->address("world_site_type",false));
+    QVector<VPTR> sites = enumerate_vector(world_data_addr + m_layout->global_offset("active_sites_vector"));
+    foreach(VPTR site, sites){
+        short t = read_short(site + m_layout->global_offset("world_site_type"));
         if(t==0){ //player fortress type
             m_fortress_name = get_language_word(site);
             m_fortress_name_translated = get_translated_word(site);
@@ -822,19 +820,13 @@ QList<Squad *> DFInstance::load_squads(bool show_progress) {
     }
 
     if(show_progress){
-        // we're connected, make sure we have good addresses
-        m_squad_vector = m_layout->address("squad_vector");
-        if(m_squad_vector == 0xFFFFFFFF) {
-            LOGI << "Squads not supported for this version of Dwarf Fortress";
-            return squads;
-        }
         LOGD << "loading squads from " << hexify(m_squad_vector);
         emit progress_message(tr("Loading Squads"));
     }
 
     attach();
 
-    QVector<VIRTADDR> squads_addr = enumerate_vector(m_squad_vector);
+    QVector<VPTR> squads_addr = enumerate_vector(m_squad_vector);
     LOGI << "FOUND" << squads_addr.size() << "squads";
 
     qDeleteAll(m_squads);
@@ -845,7 +837,7 @@ QList<Squad *> DFInstance::load_squads(bool show_progress) {
             emit progress_range(0, squads_addr.size()-1);
 
         int squad_count = 0;
-        foreach(VIRTADDR squad_addr, squads_addr) {
+        foreach(VPTR squad_addr, squads_addr) {
             int id = read_int(squad_addr + m_layout->squad_offset("id")); //check the id before loading the squad
             if(m_fortress->squad_is_active(id)){
                 Squad *s = new Squad(id, this, squad_addr);
@@ -894,12 +886,12 @@ void DFInstance::send_connection_interrupted(){
     emit connection_interrupted();
 }
 
-QVector<VIRTADDR> DFInstance::get_creatures(bool report_progress){
-    VIRTADDR active_units = m_layout->address("active_creature_vector");
-    VIRTADDR all_units = m_layout->address("creature_vector");
+QVector<VPTR> DFInstance::get_creatures(bool report_progress){
+    VPTR active_units = m_layout->address("active_creature_vector");
+    VPTR all_units = m_layout->address("creature_vector");
 
     //first try the active unit list
-    QVector<VIRTADDR> entries = enumerate_vector(active_units);
+    QVector<VPTR> entries = enumerate_vector(active_units);
     if(entries.isEmpty()){
         if(report_progress){
             LOGI << "no active units (embark) using full unit list";
@@ -908,7 +900,7 @@ QVector<VIRTADDR> DFInstance::get_creatures(bool report_progress){
     }else{
         //there are active units, but are they ours?
         int civ_offset = m_layout->dwarf_offset("civ");
-        foreach(VIRTADDR entry, entries){
+        foreach(VPTR entry, entries){
             if(read_word(entry + civ_offset)==m_dwarf_civ_id){
                 if(report_progress){
                     LOGI << "using active units";
@@ -937,7 +929,7 @@ QString DFInstance::pprint(const QByteArray &ba) {
         lines = 0;
 
     for(int i = 0; i < lines; ++i) {
-        VIRTADDR offset = i * 16;
+        VPTRDIFF offset = i * 16;
         out.append(hexify(offset));
         out.append(" | ");
         for (int c = 0; c < 16; ++c) {
@@ -960,7 +952,7 @@ QString DFInstance::pprint(const QByteArray &ba) {
     return out;
 }
 
-Word * DFInstance::read_dwarf_word(const VIRTADDR addr) {
+Word * DFInstance::read_dwarf_word(const VPTR addr) {
     Word * result = NULL;
     uint word_id = read_int(addr);
     if(word_id != 0xFFFFFFFF) {
@@ -969,7 +961,7 @@ Word * DFInstance::read_dwarf_word(const VIRTADDR addr) {
     return result;
 }
 
-QString DFInstance::read_dwarf_name(const VIRTADDR addr) {
+QString DFInstance::read_dwarf_name(const VPTR addr) {
     QString result = "The";
 
     //7 parts e.g.  ffffffff ffffffff 000006d4
@@ -1185,7 +1177,7 @@ const QStringList DFInstance::status_err_msg(){
     return ret;
 }
 
-VIRTADDR DFInstance::find_historical_figure(int hist_id){
+VPTR DFInstance::find_historical_figure(int hist_id){
     if(m_hist_figures.count() <= 0)
         load_hist_figures();
 
@@ -1193,8 +1185,8 @@ VIRTADDR DFInstance::find_historical_figure(int hist_id){
 }
 
 void DFInstance::load_hist_figures(){
-    QVector<VIRTADDR> hist_figs = enumerate_vector(m_layout->address("historical_figures_vector"));
-    foreach(VIRTADDR fig, hist_figs){
+    QVector<VPTR> hist_figs = enumerate_vector(m_layout->address("historical_figures_vector"));
+    foreach(VPTR fig, hist_figs){
         m_hist_figures.insert(read_int(fig + m_layout->hist_figure_offset("id")),fig);
     }
 }
@@ -1216,13 +1208,13 @@ void DFInstance::load_activities(){
     qDeleteAll(m_activities);
     m_activities.clear();
     LOGD << "loading activities";
-    QVector<VIRTADDR> activity_addrs = enumerate_vector(m_layout->address("activities_vector"));
-    QMap<int,VIRTADDR> sorted_activities;
-    foreach(VIRTADDR addr, activity_addrs){
+    QVector<VPTR> activity_addrs = enumerate_vector(m_layout->address("activities_vector"));
+    QMap<int,VPTR> sorted_activities;
+    foreach(VPTR addr, activity_addrs){
         sorted_activities.insert(read_int(addr),addr);
     }
 
-    QMapIterator<int,VIRTADDR> it(sorted_activities);
+    QMapIterator<int,VPTR> it(sorted_activities);
     it.toBack();
     while(it.hasPrevious()){
         it.previous();
@@ -1233,21 +1225,21 @@ void DFInstance::load_activities(){
     }
 }
 
-VIRTADDR DFInstance::find_occupation(int hist_id){
+VPTR DFInstance::find_occupation(int hist_id){
     return m_occupations.value(hist_id,0);
 }
 
 void DFInstance::load_occupations(){
-    QVector<VIRTADDR> oc_addrs = enumerate_vector(m_layout->address("occupations_vector"));
-    foreach(VIRTADDR addr, oc_addrs){
+    QVector<VPTR> oc_addrs = enumerate_vector(m_layout->address("occupations_vector"));
+    foreach(VPTR addr, oc_addrs){
         m_occupations.insert(read_int(addr + 0x8),addr);
     }
 }
 
-VIRTADDR DFInstance::find_identity(int id){
+VPTR DFInstance::find_identity(int id){
     if(m_fake_identities.count() == 0) //lazy load fake identities
         m_fake_identities = enumerate_vector(m_layout->address("fake_identities_vector"));
-    foreach(VIRTADDR ident, m_fake_identities){
+    foreach(VPTR ident, m_fake_identities){
         int fake_id = read_int(ident);
         if(fake_id==id){
             return ident;
@@ -1256,17 +1248,17 @@ VIRTADDR DFInstance::find_identity(int id){
     return 0;
 }
 
-VIRTADDR DFInstance::find_event(int id){
+VPTR DFInstance::find_event(int id){
     if(m_events.count() == 0){
-        QVector<VIRTADDR> all_events_addrs = enumerate_vector(m_layout->address("events_vector"));
-        foreach(VIRTADDR evt_addr, all_events_addrs){
+        QVector<VPTR> all_events_addrs = enumerate_vector(m_layout->address("events_vector"));
+        foreach(VPTR evt_addr, all_events_addrs){
             m_events.insert(read_int(evt_addr+m_layout->hist_event_offset("id")),evt_addr);
         }
     }
     return m_events.value(id,0);
 }
 
-QVector<VIRTADDR> DFInstance::get_itemdef_vector(ITEM_TYPE i){
+QVector<VPTR> DFInstance::get_itemdef_vector(ITEM_TYPE i){
     if(m_itemdef_vectors.contains(i))
         return m_itemdef_vectors.value(i);
     else
@@ -1281,7 +1273,7 @@ QString DFInstance::get_preference_item_name(int index, int subtype){
         if(!list.isEmpty() && (subtype >=0 && subtype < list.count()))
             return list.at(subtype)->name_plural();
     }else{
-        QVector<VIRTADDR> addrs = get_itemdef_vector(itype);
+        QVector<VPTR> addrs = get_itemdef_vector(itype);
         if(!addrs.empty() && (subtype >=0 && subtype < addrs.count()))
             return read_string(addrs.at(subtype) + m_layout->item_subtype_offset("name_plural"));
     }
@@ -1289,7 +1281,7 @@ QString DFInstance::get_preference_item_name(int index, int subtype){
     return Item::get_item_name_plural(itype);
 }
 
-VIRTADDR DFInstance::get_item_address(ITEM_TYPE itype, int item_id){
+VPTR DFInstance::get_item_address(ITEM_TYPE itype, int item_id){
     if(m_mapped_items.value(itype).count() <= 0)
         index_item_vector(itype);
     if(m_mapped_items.contains(itype)){
@@ -1304,7 +1296,7 @@ QString DFInstance::get_artifact_name(ITEM_TYPE itype, int item_id){
         index_item_vector(itype);
 
     if(itype == ARTIFACTS){
-        VIRTADDR addr = m_mapped_items.value(itype).value(item_id);
+        VPTR addr = m_mapped_items.value(itype).value(item_id);
         if(addr){
             QString name = get_language_word(addr+0x4); //TODO: offset
             if(name.isEmpty()){
@@ -1320,19 +1312,19 @@ QString DFInstance::get_artifact_name(ITEM_TYPE itype, int item_id){
 }
 
 void DFInstance::index_item_vector(ITEM_TYPE itype){
-    QHash<int,VIRTADDR> items;
+    QHash<int,VPTR> items;
     int offset = m_layout->item_offset("id");
     if(itype == ARTIFACTS){
         offset = 0x0;
     }
-    foreach(VIRTADDR addr, m_items_vectors.value(itype)){
+    foreach(VPTR addr, m_items_vectors.value(itype)){
         items.insert(read_int(addr+offset),addr);
     }
     m_mapped_items.insert(itype,items);
 }
 
 QString DFInstance::get_preference_other_name(int index, PREF_TYPES p_type){
-    QVector<VIRTADDR> target_vec;
+    QVector<VPTR> target_vec;
     int offset = 0x4; //default for poem/music/dance
     bool translate = true;
 
@@ -1357,7 +1349,7 @@ QString DFInstance::get_preference_other_name(int index, PREF_TYPES p_type){
     }
 
     if(index > -1 && index < target_vec.count()){
-        VIRTADDR addr = target_vec.at(index);
+        VPTR addr = target_vec.at(index);
         if(translate){
             return get_translated_word(addr + offset);
         }else{
@@ -1395,7 +1387,7 @@ QString DFInstance::find_material_name(int mat_index, short mat_type, ITEM_TYPE 
     }
     else if(mat_type < 419)
     {
-        VIRTADDR hist_figure = find_historical_figure(mat_index);
+        VPTR hist_figure = find_historical_figure(mat_index);
         if(hist_figure){
             Race *r = get_race(read_short(hist_figure + m_layout->hist_figure_offset("hist_race")));
             if(r){
@@ -1467,7 +1459,7 @@ Material *DFInstance::find_material(int mat_index, short mat_type){
         if (r)
             return r->get_creature_material(mat_type - 19);
     } else if (mat_type < 419) {
-        VIRTADDR hist_figure = find_historical_figure(mat_index);
+        VPTR hist_figure = find_historical_figure(mat_index);
         if (hist_figure) {
             Race *r = get_race(read_short(hist_figure + m_layout->hist_figure_offset("hist_race")));
             if (r)

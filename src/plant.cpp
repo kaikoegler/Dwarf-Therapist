@@ -37,7 +37,7 @@ Plant::Plant(QObject *parent)
 {
 }
 
-Plant::Plant(DFInstance *df, VIRTADDR address, int index, QObject *parent)
+Plant::Plant(DFInstance *df, VPTR address, int index, QObject *parent)
     : QObject(parent)
     , m_index(index)
     , m_address(address)
@@ -54,7 +54,7 @@ Plant::~Plant() {
     m_plant_mats.clear();
 }
 
-Plant* Plant::get_plant(DFInstance *df, const VIRTADDR & address, int index) {
+Plant* Plant::get_plant(DFInstance *df, const VPTR & address, int index) {
     return new Plant(df, address, index);
 }
 
@@ -88,9 +88,9 @@ void Plant::read_plant() {
 void Plant::load_materials(){
     if(!m_df)
         return;
-    QVector<VIRTADDR> mats = m_df->enumerate_vector(m_address + m_mem->plant_offset("materials_vector"));
+    QVector<VPTR> mats = m_df->enumerate_vector(m_address + m_mem->plant_offset("materials_vector"));
     int i = 0;
-    foreach(VIRTADDR mat, mats){
+    foreach(VPTR mat, mats){
         m_plant_mats.append(Material::get_material(m_df,mat,i,false,this));
         i++;
     }

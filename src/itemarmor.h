@@ -37,7 +37,7 @@ public:
         read_def();
     }
 
-    ItemArmor(DFInstance *df, VIRTADDR item_addr)
+    ItemArmor(DFInstance *df, VPTR item_addr)
         :Item(df,item_addr)
         , m_armor_def(0)
     {

@@ -9,7 +9,7 @@ ItemInstrument::ItemInstrument(const Item &baseItem)
     read_def();
 }
 
-ItemInstrument::ItemInstrument(DFInstance *df, VIRTADDR item_addr)
+ItemInstrument::ItemInstrument(DFInstance *df, VPTR item_addr)
     : Item(df,item_addr)
     , m_Instrument_def(0)
 {

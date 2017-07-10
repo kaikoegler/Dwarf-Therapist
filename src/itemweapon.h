@@ -38,7 +38,7 @@ public:
         read_def();
     }
 
-    ItemWeapon(DFInstance *df, VIRTADDR item_addr)
+    ItemWeapon(DFInstance *df, VPTR item_addr)
         :Item(df,item_addr)
         , m_weapon(0)
     {

@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "memorylayout.h"
 #include "truncatingfilelogger.h"
 
-Reaction::Reaction(DFInstance *df, VIRTADDR address, QObject *parent)
+Reaction::Reaction(DFInstance *df, VPTR address, QObject *parent)
     : QObject(parent)
     , m_address(address)
     , m_tag(QString::null)
@@ -40,7 +40,7 @@ Reaction::Reaction(DFInstance *df, VIRTADDR address, QObject *parent)
 Reaction::~Reaction() {
 }
 
-Reaction* Reaction::get_reaction(DFInstance *df, const VIRTADDR & address) {
+Reaction* Reaction::get_reaction(DFInstance *df, const VPTR & address) {
     return new Reaction(df, address);
 }
 

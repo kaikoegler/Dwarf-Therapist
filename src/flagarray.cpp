@@ -7,24 +7,23 @@ FlagArray::FlagArray(){
     m_flags = QBitArray(0);
 }
 
-FlagArray::FlagArray(DFInstance *df, VIRTADDR base_addr)
+FlagArray::FlagArray(DFInstance *df, VPTR base_addr)
 {
     m_df = df;
     //get the array from the pointer
-    VIRTADDR flags_addr = m_df->read_addr(base_addr);
+    VPTR flags_addr = m_df->read_addr(base_addr);
     //size of the byte array
-    uint32_t size_in_bytes = m_df->read_mem<uint32_t>(base_addr + sizeof(VIRTADDR));
+    uint32_t size_in_bytes = m_df->read_mem<uint32_t>(base_addr + sizeof(VPTR ));
 
     m_flags = QBitArray(size_in_bytes * 8);
     if(size_in_bytes > 1000){
         LOGW << "aborting reading flags, size too large" << size_in_bytes;
         return;
     }
-    BYTE b;
     int position;
     for(uint i = 0; i < size_in_bytes; i++){
         position = 7;
-        b = m_df->read_byte(flags_addr);
+        auto b = m_df->read_byte(flags_addr);
         if(b > 0){
             for(int t=128; t>0; t = t/2){
                 if(b & t)

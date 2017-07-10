@@ -88,7 +88,7 @@ public:
 
 private:
     DFInstance *m_df;
-    VIRTADDR m_dwarf_addr;
+    VPTR m_dwarf_addr;
 
     Dwarf *m_dwarf;
 

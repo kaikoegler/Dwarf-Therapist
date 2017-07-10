@@ -39,7 +39,7 @@ Syndrome::Syndrome()
 {
 }
 
-Syndrome::Syndrome(DFInstance *df, VIRTADDR addr)
+Syndrome::Syndrome(DFInstance *df, VPTR addr)
     : m_df(df)
     , m_mem(m_df->memory_layout())
     , m_addr(addr)
@@ -49,22 +49,22 @@ Syndrome::Syndrome(DFInstance *df, VIRTADDR addr)
     m_id = m_df->read_int(addr);
     m_is_sickness = m_df->read_byte(m_addr + m_mem->dwarf_offset("syn_sick_flag"));
 
-    VIRTADDR syn_addr = m_df->get_syndrome(m_id);
+    VPTR syn_addr = m_df->get_syndrome(m_id);
     if(syn_addr){
         m_name = capitalizeEach(m_df->read_string(syn_addr));
         //SYN_CLASS tokens
         QRegExp rx = QRegExp("[-_\\*~@#\\^]");
-        QVector<VIRTADDR> classes_addr = m_df->enumerate_vector(syn_addr + m_mem->syndrome_offset("syn_classes_vector"));
-        foreach(VIRTADDR class_addr, classes_addr){
+        QVector<VPTR> classes_addr = m_df->enumerate_vector(syn_addr + m_mem->syndrome_offset("syn_classes_vector"));
+        foreach(VPTR class_addr, classes_addr){
             QString class_name = m_df->read_string(class_addr);
             class_name = class_name.replace(rx," ");
             if(!class_name.trimmed().isEmpty())
                 m_class_names.append(capitalizeEach(class_name.trimmed().toLower()));
         }
 
-        QVector<VIRTADDR> effects = m_df->enumerate_vector(syn_addr + m_mem->syndrome_offset("cie_effects"));
-        foreach(VIRTADDR ce_addr, effects){
-            VIRTADDR vtable = m_df->read_addr(ce_addr);
+        QVector<VPTR> effects = m_df->enumerate_vector(syn_addr + m_mem->syndrome_offset("cie_effects"));
+        foreach(VPTR ce_addr, effects){
+            VPTR vtable = m_df->read_addr(ce_addr);
             int type = m_df->read_int(m_df->read_addr(vtable)+m_df->VM_TYPE_OFFSET());
             int end = m_df->read_int(ce_addr + m_mem->syndrome_offset("cie_end"));
             if(type==25){
@@ -79,8 +79,7 @@ Syndrome::Syndrome(DFInstance *df, VIRTADDR addr)
                 //transformation
                 LOGD << "reading syndrome type" << type << "(transformation)";
                 m_has_transform = true;
-                if(m_mem->is_valid_address(m_mem->syndrome_offset("trans_race_id")))
-                    m_transform_race = m_df->read_int(ce_addr + m_mem->syndrome_offset("trans_race_id"));
+                m_transform_race = m_df->read_int(ce_addr + m_mem->syndrome_offset("trans_race_id"));
             }
         }
     }else{
@@ -125,11 +124,11 @@ QString Syndrome::display_name(bool show_name,bool show_class){
     return "???";
 }
 
-void Syndrome::load_attribute_changes(VIRTADDR addr, int start_idx, int count, int add_offset, int end){
+void Syndrome::load_attribute_changes(VPTR addr, int start_idx, int count, int add_offset, int end){
     int idx_offset = 0;
     int idx = 0;
     for(idx = 0; idx <=count; idx++){
-        idx_offset = sizeof(VIRTADDR) * idx;
+        idx_offset = sizeof(VPTR ) * idx;
         syn_att_change att_change;
         att_change.percent = m_df->read_int(addr+m_mem->syndrome_offset("cie_first_perc")+idx_offset);
         att_change.added = m_df->read_int(addr+add_offset+idx_offset);

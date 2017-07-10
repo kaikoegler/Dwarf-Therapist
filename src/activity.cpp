@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "truncatingfilelogger.h"
 #include "dwarfjob.h"
 
-Activity::Activity(DFInstance *df, VIRTADDR addr, QObject *parent)
+Activity::Activity(DFInstance *df, VPTR addr, QObject *parent)
     :QObject(parent)
     , m_df(df)
     , m_address(addr)
@@ -58,7 +58,7 @@ void Activity::read_data(){
 
         //go through the events backwards, the vector contains events in order from parent to child
         //ie. training->combat training->skill demonstration so the last items are the most specific
-        QVector<VIRTADDR> events = m_df->enumerate_vector(m_address + mem->activity_offset("events"));
+        QVector<VPTR> events = m_df->enumerate_vector(m_address + mem->activity_offset("events"));
         for(int idx=events.count()-1;idx>=0;idx--){
             ActivityEvent *ae = new ActivityEvent(m_df,events.at(idx),&m_histfig_actions,this);
             if(ae){

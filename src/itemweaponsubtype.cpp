@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "dfinstance.h"
 #include "memorylayout.h"
 
-ItemWeaponSubtype::ItemWeaponSubtype(DFInstance *df, VIRTADDR address, QObject *parent)
+ItemWeaponSubtype::ItemWeaponSubtype(DFInstance *df, VPTR address, QObject *parent)
     : ItemSubtype(df,address,parent)
     , m_single_grasp_size(0)
     , m_multi_grasp_size(0)

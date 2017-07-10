@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include "races.h"
 #include "bodypart.h"
 
-Caste::Caste(DFInstance *df, VIRTADDR address, Race *r, QObject *parent)
+Caste::Caste(DFInstance *df, VPTR address, Race *r, QObject *parent)
     : QObject(parent)
     , m_address(address)
     , m_race(r)
@@ -101,8 +101,8 @@ void Caste::read_caste() {
         m_flags.set_flag(TRAINABLE,true);
     }
 
-    VIRTADDR extracts_vector_start = m_address + m_mem->caste_offset("extracts");
-    if(m_df->read_addr(extracts_vector_start + sizeof(VIRTADDR)) > m_df->read_addr(extracts_vector_start)){
+    VPTR extracts_vector_start = m_address + m_mem->caste_offset("extracts");
+    if(m_df->read_addr(extracts_vector_start + sizeof(VPTR )) > m_df->read_addr(extracts_vector_start)){
         m_flags.set_flag(HAS_EXTRACTS,true);
     }
     int offset = m_mem->caste_offset("shearable_tissues_vector");
@@ -137,7 +137,7 @@ bool Caste::is_geldable(){
 
 void Caste::load_skill_rates(){
     if(m_skill_rates.count() <= 0){
-        VIRTADDR addr = m_address + m_mem->caste_offset("skill_rates");
+        VPTR addr = m_address + m_mem->caste_offset("skill_rates");
         int val;
         int skill_count = GameDataReader::ptr()->get_total_skill_count();
         for(int skill_id=0; skill_id < skill_count; skill_id++){
@@ -161,9 +161,9 @@ int Caste::get_skill_rate(int skill_id){
 
 void Caste::load_attribute_info(){
     //physical attributes (seems mental attribs follow so load them all at once)
-    VIRTADDR base = m_address + m_mem->caste_offset("caste_phys_att_ranges");
-    VIRTADDR base_caps = m_address + m_mem->caste_offset("caste_att_caps");
-    VIRTADDR base_rates = m_address + m_mem->caste_offset("caste_att_rates");
+    VPTR base = m_address + m_mem->caste_offset("caste_phys_att_ranges");
+    VPTR base_caps = m_address + m_mem->caste_offset("caste_att_caps");
+    VPTR base_rates = m_address + m_mem->caste_offset("caste_att_rates");
     int perc = 200; //the percentage of improvement default is 200
     int limit = 5000; //absolute maximum any dwarf can achieve (last raw bin * perc)
     int median = 0;

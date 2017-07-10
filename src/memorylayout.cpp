@@ -80,10 +80,7 @@ void MemoryLayout::load_data() {
 }
 
 uint MemoryLayout::read_hex(QString key) {
-    bool ok;
-    QString data = m_data.value(key, -1).toString();
-    uint val = data.toUInt(&ok, 16);
-    return val;
+    return m_data.value(key, -1).toString().toULongLong(nullptr, 16);
 }
 
 bool MemoryLayout::is_valid() {
@@ -93,10 +90,7 @@ bool MemoryLayout::is_valid() {
 
 void MemoryLayout::read_group(const MEM_SECTION &section) {
     QString ini_name = section_name(section);
-    AddressHash map;
-    if(m_offsets.contains(section)){
-        map = m_offsets.take(section);
-    }
+    auto map = m_offsets.take(section);
     m_data.beginGroup(ini_name);
     foreach(QString k, m_data.childKeys()) {
         map.insert(k, read_hex(k));
@@ -155,10 +149,6 @@ void MemoryLayout::set_complete() {
     m_data.setValue("info/complete", "true");
 }
 
-bool MemoryLayout::is_valid_address(VIRTADDR addr){
-    return (addr != 0x000);
-}
-
-VIRTADDR MemoryLayout::address(const QString &key, const bool is_global) { //globals
-    return m_offsets.value(MEM_GLOBALS).value(key, -1) + (is_global ? m_df->df_base_addr() : 0);
+VPTR MemoryLayout::address(const QString &key) {
+    return m_df->df_base_addr() + m_offsets.value(MEM_GLOBALS).value(key, -1);
 }

@@ -63,7 +63,7 @@ HistFigure::~HistFigure(){
 }
 
 void HistFigure::read_kills(){
-    VIRTADDR kills_addr = m_df->read_addr(m_fig_info_addr + m_mem->hist_figure_offset("kills"));
+    VPTR kills_addr = m_df->read_addr(m_fig_info_addr + m_mem->hist_figure_offset("kills"));
     if(kills_addr==0)
         return;
     QVector<qint32> kill_events = m_df->enum_vec<qint32>(kills_addr);
@@ -100,17 +100,17 @@ void HistFigure::read_kills(){
     }
     if(kill_events.count() > 0){
         foreach(quint32 evt_id, kill_events){
-            VIRTADDR evt_addr = 0;
+            VPTR evt_addr = 0;
             evt_addr = m_df->find_event(evt_id);
             if(evt_addr){
-                VIRTADDR vtable_addr = m_df->read_addr(evt_addr);
+                VPTR vtable_addr = m_df->read_addr(evt_addr);
                 int evt_type = m_df->read_int(m_df->read_addr(vtable_addr) + m_df->VM_TYPE_OFFSET());
                 LOGD << "found historical event type" << evt_type;
                 if(evt_type == 3){ //hist figure died event
                     int hist_id = m_df->read_int(evt_addr + m_mem->hist_event_offset("killed_hist_id"));
-                    VIRTADDR h_fig_addr =  m_df->find_historical_figure(hist_id);
+                    VPTR h_fig_addr =  m_df->find_historical_figure(hist_id);
                     if(h_fig_addr){
-                        VIRTADDR name_addr = h_fig_addr + m_mem->hist_figure_offset("hist_name");
+                        VPTR name_addr = h_fig_addr + m_mem->hist_figure_offset("hist_name");
                         kill_info ki;
                         ki.name = capitalizeEach(m_df->read_string(name_addr).append(" ").append(m_df->get_translated_word(name_addr)));
                         ki.count = 1;
@@ -129,7 +129,7 @@ void HistFigure::read_kills(){
 }
 
 void HistFigure::write_nick_name(const QString new_nick){
-    foreach(VIRTADDR addr, m_nick_addrs){
+    foreach(VPTR addr, m_nick_addrs){
         if(addr != 0){
             m_df->write_string(addr, new_nick);
         }
@@ -191,7 +191,7 @@ QString HistFigure::formatted_summary(bool show_no_kills, bool space_notable){
 }
 
 bool HistFigure::read_fake_identity(){
-    VIRTADDR rep_info = m_df->read_addr(m_fig_info_addr + m_mem->hist_figure_offset("reputation"));
+    VPTR rep_info = m_df->read_addr(m_fig_info_addr + m_mem->hist_figure_offset("reputation"));
     if(rep_info != 0){
         int cur_ident = m_df->read_int(rep_info + m_mem->hist_figure_offset("current_ident"));
         m_fake_ident_addr = m_df->find_identity(cur_ident);

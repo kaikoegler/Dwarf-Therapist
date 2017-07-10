@@ -37,13 +37,13 @@ class Material;
 class Race : public QObject {
     Q_OBJECT
 public:
-    Race(DFInstance *df, VIRTADDR address,  int id, QObject *parent = 0);
+    Race(DFInstance *df, VPTR address,  int id, QObject *parent = 0);
     virtual ~Race();
 
-    static Race* get_race(DFInstance *df, const VIRTADDR &address, int id);
+    static Race* get_race(DFInstance *df, const VPTR &address, int id);
 
     //! Return the memory address (in hex) of this race in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     int race_id() {return m_id;}
     QString name(int count = 1) {return (count > 1 ? m_name_plural : m_name);}
@@ -54,9 +54,9 @@ public:
     QString baby_name_plural() {return m_baby_name_plural;}
     QString child_name() {return m_child_name;}
     QString child_name_plural() {return m_child_name_plural;}
-    VIRTADDR pref_string_vector() {return m_pref_string_vector;}
-    VIRTADDR pop_ratio_vector() {return m_pop_ratio_vector;}
-    VIRTADDR castes_vector() {return m_castes_vector;}
+    VPTR pref_string_vector() {return m_pref_string_vector;}
+    VPTR pop_ratio_vector() {return m_pop_ratio_vector;}
+    VPTR castes_vector() {return m_castes_vector;}
     Material *get_creature_material(int index);
     QHash<int, Material *> get_creature_materials();
     Caste *get_caste_by_id(int idx);
@@ -69,9 +69,9 @@ public:
 
     void load_caste_ratios();
 
-    VIRTADDR get_tissue_address(int index);
+    VPTR get_tissue_address(int index);
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
 
     int m_id;
     QString m_name;
@@ -85,12 +85,12 @@ private:
     QList<Caste*> m_castes;
     QHash<int, Material*> m_creature_mats;
 
-    VIRTADDR m_pref_string_vector;
-    VIRTADDR m_pop_ratio_vector;
-    VIRTADDR m_castes_vector;
+    VPTR m_pref_string_vector;
+    VPTR m_pop_ratio_vector;
+    VPTR m_castes_vector;
 
-    QVector<VIRTADDR> m_materials_addr;
-    QVector<VIRTADDR> m_tissues_addr;
+    QVector<VPTR> m_materials_addr;
+    QVector<VPTR> m_tissues_addr;
 
     DFInstance * m_df;
     MemoryLayout * m_mem;

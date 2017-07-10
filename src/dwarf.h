@@ -53,13 +53,13 @@ class Dwarf : public QObject
     friend class Squad;
 
 public:
-    Dwarf(DFInstance *df, VIRTADDR addr, QObject *parent=0);
+    Dwarf(DFInstance *df, VPTR addr, QObject *parent=0);
     virtual ~Dwarf();
 
     DFInstance * get_df_instance(){return m_df;}
 
     //! Return the memory address (in hex) of this creature in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     //! return the the unique id for this creature
     Q_INVOKABLE int id() const {return m_id;}
@@ -561,14 +561,8 @@ public:
     public slots:
         //! called when global user settings change
         void read_settings();
-        //! show a dialog with a memory dump for this dwarf...
-        void dump_memory();
-        //! dump dwarf memory to a file using the dwarf's name
-        void dump_memory_to_file();
         //! show details for this dwarf in a new window...
         void show_details();
-        //! copy this dwarf's memory address to the clipboard (debugging)
-        void copy_address_to_clipboard();
 
         //! undo any uncomitted changes to this dwarf (reset back to game-state)
         void clear_pending();
@@ -590,8 +584,8 @@ private:
     int m_id; // each creature in the game has a unique serial ID
     DFInstance *m_df;
     MemoryLayout *m_mem;
-    VIRTADDR m_address; // start of the structure in DF's memory space
-    VIRTADDR m_first_soul; // start of 1st soul for this creature
+    VPTR m_address; // start of the structure in DF's memory space
+    VPTR m_first_soul; // start of 1st soul for this creature
     int m_race_id; // each creature has racial ID
     DWARF_HAPPINESS m_happiness; // enum value of happiness
     QString m_happiness_desc; //happiness name + stress level
@@ -722,20 +716,20 @@ private:
     void read_race();
     void read_body_size();
     void read_first_name();
-    void read_last_name(VIRTADDR name_offset);
+    void read_last_name(VPTR name_offset);
     void read_nick_name();
     void read_states();
     void read_profession();
     void read_labors();
-    void read_happiness(VIRTADDR personality_base);
+    void read_happiness(VPTR personality_base);
     void read_current_job();
     bool read_soul();
     void read_soul_aspects();
     void read_skills();
     void read_attributes();
-    void load_attribute(VIRTADDR &addr, ATTRIBUTES_TYPE id);
+    void load_attribute(VPTR &addr, ATTRIBUTES_TYPE id);
     void read_personality();
-    void read_emotions(VIRTADDR personality_base);
+    void read_emotions(VPTR personality_base);
     void read_turn_count();
     void read_animal_type();
     void read_noble_position();
@@ -753,7 +747,7 @@ private:
     void process_uncovered(ITEM_TYPE i_type, QString desc, int count, int req_count);
     void process_inv_item(QString category, Item *item, bool is_contained_item=false);
 
-    void set_age_and_migration(VIRTADDR birth_year_offset, VIRTADDR birth_time_offset);
+    void set_age_and_migration(VPTR birth_year_offset, VPTR birth_time_offset);
 
     // assembles component names into a nicely formatted single string
     void build_names();

@@ -99,50 +99,48 @@ public:
     QString game_version() {return m_game_version;}
     QString checksum() {return m_checksum;}
     QString git_sha() {return m_git_sha;}
-    bool is_valid_address(VIRTADDR addr);
     uint string_buffer_offset();
     uint string_length_offset();
     uint string_cap_offset();
 
-    QHash<QString,VIRTADDR> get_section_offsets(const MEM_SECTION &section) {
+    QHash<QString, VPTRDIFF> get_section_offsets(const MEM_SECTION &section) {
         return m_offsets.value(section);
     }
-    VIRTADDR offset(const MEM_SECTION &section, const QString &name) const{
+    VPTRDIFF offset(const MEM_SECTION &section, const QString &name) const{
         return m_offsets.value(section).value(name,-1);
     }
     QHash<uint,QString> get_flags(const UNIT_FLAG_TYPE &flag_type){
         return m_flags.value(flag_type);
     }
 
-    QHash<QString, VIRTADDR> globals() {return get_section_offsets(MEM_GLOBALS);}
+    VPTR address(const QString &key);
 
-    VIRTADDR address(const QString &key, const bool is_global = true);
-
-    qint16 language_offset(const QString &key) const {return offset(MEM_LANGUAGE,key);}
-    qint16 dwarf_offset(const QString &key) const {return offset(MEM_UNIT,key);}
-    qint16 squad_offset(const QString & key) const {return offset(MEM_SQUAD,key);}
-    qint16 word_offset(const QString & key) const {return offset(MEM_WORD,key);}
-    qint16 race_offset(const QString & key) const {return offset(MEM_RACE,key);}
-    qint16 caste_offset(const QString & key) const {return offset(MEM_CASTE,key);}
-    qint16 hist_figure_offset(const QString & key) const {return offset(MEM_HIST_FIG,key);}
-    qint16 hist_event_offset(const QString & key) const {return offset(MEM_HIST_EVT,key);}
-    qint16 hist_entity_offset(const QString & key) const {return offset(MEM_HIST_ENT,key);}
-    qint16 weapon_subtype_offset(const QString & key) const {return offset(MEM_WEP_SUB,key);}
-    qint16 material_offset(const QString & key) const {return offset(MEM_MAT,key);}
-    qint16 plant_offset(const QString & key) const {return offset(MEM_PLANT,key);}
-    qint16 item_subtype_offset(const QString & key) const {return offset(MEM_ITEM_SUB,key);}
-    qint16 descriptor_offset(const QString & key) const {return offset(MEM_DESC,key);}
-    qint16 health_offset(const QString & key) const {return offset(MEM_HEALTH,key);}
-    qint16 wound_offset(const QString & key) const {return offset(MEM_WOUND,key);}
-    qint16 item_offset(const QString & key) const {return offset(MEM_ITEM,key);}
-    qint16 item_filter_offset(const QString & key) const {return offset(MEM_ITEM_FILTER,key);}
-    qint16 armor_subtype_offset(const QString & key) const {return offset(MEM_ARMOR_SUB,key);}
-    qint16 general_ref_offset(const QString & key) const {return offset(MEM_GEN_REF,key);}
-    qint16 syndrome_offset(const QString & key) const {return offset(MEM_SYN,key);}
-    qint16 emotion_offset(const QString & key) const {return offset(MEM_EMOTION,key);}
-    qint16 activity_offset(const QString & key) const {return offset(MEM_ACTIVITY,key);}
-    qint16 job_detail(const QString &key) const {return offset(MEM_JOB,key);}
-    qint16 soul_detail(const QString &key) const {return offset(MEM_SOUL,key);}
+    VPTRDIFF global_offset(const QString &key) const {return offset(MEM_GLOBALS,key);}
+    VPTRDIFF language_offset(const QString &key) const {return offset(MEM_LANGUAGE,key);}
+    VPTRDIFF dwarf_offset(const QString &key) const {return offset(MEM_UNIT,key);}
+    VPTRDIFF squad_offset(const QString & key) const {return offset(MEM_SQUAD,key);}
+    VPTRDIFF word_offset(const QString & key) const {return offset(MEM_WORD,key);}
+    VPTRDIFF race_offset(const QString & key) const {return offset(MEM_RACE,key);}
+    VPTRDIFF caste_offset(const QString & key) const {return offset(MEM_CASTE,key);}
+    VPTRDIFF hist_figure_offset(const QString & key) const {return offset(MEM_HIST_FIG,key);}
+    VPTRDIFF hist_event_offset(const QString & key) const {return offset(MEM_HIST_EVT,key);}
+    VPTRDIFF hist_entity_offset(const QString & key) const {return offset(MEM_HIST_ENT,key);}
+    VPTRDIFF weapon_subtype_offset(const QString & key) const {return offset(MEM_WEP_SUB,key);}
+    VPTRDIFF material_offset(const QString & key) const {return offset(MEM_MAT,key);}
+    VPTRDIFF plant_offset(const QString & key) const {return offset(MEM_PLANT,key);}
+    VPTRDIFF item_subtype_offset(const QString & key) const {return offset(MEM_ITEM_SUB,key);}
+    VPTRDIFF descriptor_offset(const QString & key) const {return offset(MEM_DESC,key);}
+    VPTRDIFF health_offset(const QString & key) const {return offset(MEM_HEALTH,key);}
+    VPTRDIFF wound_offset(const QString & key) const {return offset(MEM_WOUND,key);}
+    VPTRDIFF item_offset(const QString & key) const {return offset(MEM_ITEM,key);}
+    VPTRDIFF item_filter_offset(const QString & key) const {return offset(MEM_ITEM_FILTER,key);}
+    VPTRDIFF armor_subtype_offset(const QString & key) const {return offset(MEM_ARMOR_SUB,key);}
+    VPTRDIFF general_ref_offset(const QString & key) const {return offset(MEM_GEN_REF,key);}
+    VPTRDIFF syndrome_offset(const QString & key) const {return offset(MEM_SYN,key);}
+    VPTRDIFF emotion_offset(const QString & key) const {return offset(MEM_EMOTION,key);}
+    VPTRDIFF activity_offset(const QString & key) const {return offset(MEM_ACTIVITY,key);}
+    VPTRDIFF job_detail(const QString &key) const {return offset(MEM_JOB,key);}
+    VPTRDIFF soul_detail(const QString &key) const {return offset(MEM_SOUL,key);}
 
     QHash<uint, QString> invalid_flags_1() {return get_flags(INVALID_FLAGS_1) ;}
     QHash<uint, QString> invalid_flags_2() {return get_flags(INVALID_FLAGS_2);}
@@ -163,9 +161,8 @@ public:
 
 private:
     DFInstance *m_df;
-    typedef QHash<QString, VIRTADDR> AddressHash;
 
-    QHash<MEM_SECTION,AddressHash> m_offsets;
+    QHash<MEM_SECTION, QHash<QString, VPTRDIFF> > m_offsets;
     QHash<UNIT_FLAG_TYPE, QHash<uint,QString> > m_flags;
 
     QFileInfo m_fileinfo;

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "dwarftherapist.h"
 #include "truncatingfilelogger.h"
 
-Word::Word(DFInstance *df, VIRTADDR address, QObject *parent)
+Word::Word(DFInstance *df, VPTR address, QObject *parent)
     : QObject(parent)
     , m_address(address)
     , m_base(QString::null)
@@ -47,7 +47,7 @@ Word::Word(DFInstance *df, VIRTADDR address, QObject *parent)
 Word::~Word() {
 }
 
-Word* Word::get_word(DFInstance *df, const VIRTADDR & address) {
+Word* Word::get_word(DFInstance *df, const VPTR & address) {
     return new Word(df, address);
 }
 

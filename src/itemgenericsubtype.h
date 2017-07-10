@@ -28,7 +28,7 @@ class ItemGenericSubtype : public ItemSubtype {
     Q_OBJECT
 public:
 
-    ItemGenericSubtype(const ITEM_TYPE itype, DFInstance *df, const VIRTADDR address, QObject *parent)
+    ItemGenericSubtype(const ITEM_TYPE itype, DFInstance *df, const VPTR address, QObject *parent)
         : ItemSubtype(itype,df,address,parent)
     {
         read_data();

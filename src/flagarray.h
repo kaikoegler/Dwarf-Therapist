@@ -39,7 +39,7 @@ private:
 
 public:
     FlagArray();
-    FlagArray(DFInstance *df, VIRTADDR base_addr);
+    FlagArray(DFInstance *df, VPTR base_addr);
     FlagArray(const FlagArray &f);
     virtual ~FlagArray();
 

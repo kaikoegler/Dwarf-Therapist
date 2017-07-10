@@ -5,8 +5,8 @@
 #include <QTextCodec>
 
 struct STLStringHeader {
-    USIZE length;
-    USIZE capacity;
+    size_t length;
+    size_t capacity;
     int refcnt;
 };
 
@@ -23,18 +23,21 @@ QString DFInstanceNix::calculate_checksum() {
         LOGE << "FAILED TO READ DF EXECUTABLE:" << m_loc_of_dfexe;
         return QString("UNKNOWN");
     }
-    // Qt 4 doesn't support QCryptographicHash::addData(QIODevice*)
+#if QT_VERSION >= 0x050000
+    hash.addData(&proc);
+#else
     char buf[4096];
     qint64 len;
     while ((len = proc.read(buf, sizeof(buf))) > 0) {
         hash.addData(buf, len);
     }
+#endif
     QString md5 = hexify(hash.result().mid(0, 4)).toLower();
     TRACE << "GOT MD5:" << md5;
     return md5;
 }
 
-QString DFInstanceNix::read_string(VIRTADDR addr) {
+QString DFInstanceNix::read_string(VPTR addr) {
     char buf[1024];
     read_raw(read_addr(addr), sizeof(buf), (void *)buf);
 
@@ -46,19 +49,19 @@ bool DFInstanceNix::df_running(){
     return (set_pid() && cur_pid == m_pid);
 }
 
-USIZE DFInstanceNix::write_string(VIRTADDR addr, const QString &str) {
+size_t DFInstanceNix::write_string(VPTR addr, const QString &str) {
     // Ensure this operation is done as one transaction
     attach();
-    VIRTADDR buffer_addr = get_string(str);
+    VPTR buffer_addr = get_string(str);
     if (buffer_addr)
         // This unavoidably leaks the old buffer; our own
         // cannot be deallocated anyway.
-        write_raw(addr, sizeof(VIRTADDR), &buffer_addr);
+        write_raw(addr, sizeof(VPTR), &buffer_addr);
     detach();
     return buffer_addr ? str.length() : 0;
 }
 
-VIRTADDR DFInstanceNix::get_string(const QString &str) {
+VPTR DFInstanceNix::get_string(const QString &str) {
     if (m_string_cache.contains(str))
         return m_string_cache[str];
 
@@ -68,11 +71,11 @@ VIRTADDR DFInstanceNix::get_string(const QString &str) {
     header.capacity = header.length = data.length();
     header.refcnt = -1; // huge refcnt to avoid dealloc
 
-    QByteArray buf((char*)&header, sizeof(header));
+    QByteArray buf(reinterpret_cast<char *>(&header), sizeof(header));
     buf.append(data);
     buf.append(char(0));
 
-    VIRTADDR addr = alloc_chunk(buf.length());
+    VPTR addr = alloc_chunk(buf.length());
 
     if (addr) {
         write_raw(addr, buf.length(), buf.data());

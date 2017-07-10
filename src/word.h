@@ -34,13 +34,13 @@ class MemoryLayout;
 class Word : public QObject {
     Q_OBJECT
 public:
-    Word(DFInstance *df, VIRTADDR address, QObject *parent = 0);
+    Word(DFInstance *df, VPTR address, QObject *parent = 0);
     virtual ~Word();
 
-    static Word* get_word(DFInstance *df, const VIRTADDR &address);
+    static Word* get_word(DFInstance *df, const VPTR &address);
 
     //! Return the memory address (in hex) of this creature in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     QString base() {return m_base;}
     QString noun() {return m_noun;}
@@ -56,7 +56,7 @@ public:
     void refresh_data();
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     QString m_base;
     QString m_noun;
     QString m_plural_noun;

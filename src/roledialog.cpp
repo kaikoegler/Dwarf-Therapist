@@ -744,7 +744,7 @@ void roleDialog::load_items(){
     QTreeWidgetItem *item_parent;
     QTreeWidgetItem *clothing_parent;
 
-    QHash<ITEM_TYPE, QVector<VIRTADDR> > item_list = m_df->get_all_item_defs();
+    QHash<ITEM_TYPE, QVector<VPTR> > item_list = m_df->get_all_item_defs();
     int count;
 
     QStringList added_subtypes;

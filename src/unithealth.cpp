@@ -191,7 +191,7 @@ void UnitHealth::add_info(HealthInfo *hi, QList<HealthInfo *> &info_list){
 
 void UnitHealth::read_health_info(){
     MemoryLayout *mem = m_df->memory_layout();
-    VIRTADDR unit_health_addr = m_df->read_addr(m_dwarf_addr + mem->dwarf_offset("unit_health_info"));
+    VPTR unit_health_addr = m_df->read_addr(m_dwarf_addr + mem->dwarf_offset("unit_health_info"));
 
     quint32 health_flags = 0;
     if(unit_health_addr > 0){
@@ -222,11 +222,11 @@ void UnitHealth::read_health_info(){
     bool unconscious = false;
     bool sleeping = false;
 
-    VIRTADDR base_counter_addr = mem->dwarf_offset("counters1"); //starts at winded
-    VIRTADDR base_counter2_addr = mem->dwarf_offset("counters2"); //starts at pain
-    VIRTADDR base_counter3_addr = mem->dwarf_offset("counters3"); //starts at paralysis
+    VPTRDIFF base_counter_addr = mem->dwarf_offset("counters1"); //starts at winded
+    VPTRDIFF base_counter2_addr = mem->dwarf_offset("counters2"); //starts at pain
+    VPTRDIFF base_counter3_addr = mem->dwarf_offset("counters3"); //starts at paralysis
 
-    VIRTADDR base_limbs_addr = mem->dwarf_offset("limb_counters");
+    VPTRDIFF base_limbs_addr = mem->dwarf_offset("limb_counters");
 
     if(m_dwarf->get_caste()){
         //the unconscious state seems to depend on whether or not the dwarf is sleeping
@@ -433,17 +433,17 @@ void UnitHealth::read_health_info(){
 }
 
 void UnitHealth::read_wounds(){
-    VIRTADDR addr = m_df->memory_layout()->dwarf_offset("body_component_info");
-    body_part_status_flags = m_df->enum_vec<qint32>(m_dwarf_addr +  addr);
-    layer_status_flags = m_df->enum_vec<qint32>(m_dwarf_addr + addr + m_df->memory_layout()->dwarf_offset("layer_status_vector"));
+    auto off = m_df->memory_layout()->dwarf_offset("body_component_info");
+    body_part_status_flags = m_df->enum_vec<qint32>(m_dwarf_addr + off);
+    layer_status_flags = m_df->enum_vec<qint32>(m_dwarf_addr + off + m_df->memory_layout()->dwarf_offset("layer_status_vector"));
 
     //add the wounds based on the wounded parts
-    QVector<VIRTADDR> wounds = m_df->enumerate_vector(m_dwarf_addr + m_df->memory_layout()->dwarf_offset("wounds_vector"));
+    QVector<VPTR> wounds = m_df->enumerate_vector(m_dwarf_addr + m_df->memory_layout()->dwarf_offset("wounds_vector"));
     FlagArray caste_flags;
     if(m_dwarf->get_caste()){
         caste_flags = m_dwarf->get_caste()->flags();
     }
-    foreach(VIRTADDR addr, wounds){
+    foreach(VPTR addr, wounds){
         m_wounds.append(UnitWound(m_df,addr,caste_flags,this));
     }
 

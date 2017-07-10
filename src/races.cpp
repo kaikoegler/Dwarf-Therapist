@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "truncatingfilelogger.h"
 #include "material.h"
 
-Race::Race(DFInstance *df, VIRTADDR address, int id, QObject *parent)
+Race::Race(DFInstance *df, VPTR address, int id, QObject *parent)
     : QObject(parent)
     , m_address(address)
     , m_id(id)
@@ -57,7 +57,7 @@ Race::~Race() {
     m_creature_mats.clear();
 }
 
-Race* Race::get_race(DFInstance *df, const VIRTADDR & address, int id) {
+Race* Race::get_race(DFInstance *df, const VPTR & address, int id) {
     return new Race(df, address, id);
 }
 
@@ -119,11 +119,11 @@ void Race::read_race() {
     m_tissues_addr = m_df->enumerate_vector(m_address + m_mem->race_offset("tissues_vector"));
 
     //m_description = m_df->read_string(m_address + m_mem->caste_offset("caste_descr"));
-    QVector<VIRTADDR> castes = m_df->enumerate_vector(m_castes_vector);
+    QVector<VPTR> castes = m_df->enumerate_vector(m_castes_vector);
     //LOGD << "RACE " << m_name << " (index:" << m_id << ") with " << castes.size() << "castes";
 
     if (!castes.empty()) {
-        foreach (VIRTADDR caste_addr, castes) {
+        foreach (VPTR caste_addr, castes) {
             m_castes.append(new Caste(m_df, caste_addr, this));
         }
     }
@@ -149,9 +149,9 @@ void Race::load_caste_ratios(){
     /* fuck it
     if(!loaded_stats){
         QVector<int> ratios;
-        QVector<VIRTADDR> addrs = m_df->enumerate_vector(m_pop_ratio_vector);
+        QVector<VPTR> addrs = m_df->enumerate_vector(m_pop_ratio_vector);
 
-        foreach(VIRTADDR addr, addrs){
+        foreach(VPTR addr, addrs){
             ratios << (int)addr;
         }
 
@@ -240,9 +240,9 @@ int Race::adult_size(){
     }
 }
 
-VIRTADDR Race::get_tissue_address(int index){
+VPTR Race::get_tissue_address(int index){
     if(index > -1 && index < m_tissues_addr.size())
         return m_tissues_addr.at(index);
     else
-        return -1;
+        return nullptr;
 }

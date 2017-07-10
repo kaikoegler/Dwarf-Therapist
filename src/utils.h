@@ -31,12 +31,8 @@ THE SOFTWARE.
 #include <QString>
 #include <math.h>
 
-// meh
-typedef quint64 VIRTADDR;
-typedef quint64 USIZE;
-typedef qint64 SSIZE;
-typedef quint8 BYTE;
-typedef quint16 WORD;
+typedef char * VPTR;
+typedef ptrdiff_t VPTRDIFF;
 
 static inline QColor complement(const QColor &in_color, float brightness_threshold = 0.50) {
     qreal brightness = sqrt(pow(in_color.redF(),2.0) * 0.241 +
@@ -45,7 +41,10 @@ static inline QColor complement(const QColor &in_color, float brightness_thresho
     return QColor::fromHsv(in_color.toHsv().hue(), 25, brightness >= brightness_threshold || in_color.alpha() < 130 ? 0 : 255);
 }
 
-static inline QString hexify(const quint64 &num) {
+static inline QString hexify(const VPTR addr) {
+    return QString("0x%1").arg(reinterpret_cast<quintptr>(addr), sizeof(VPTR) * 2, 16, QChar('0'));
+}
+static inline QString hexify(const quint64 num) {
     int width = 8;
     if (num >> 16)
         width = 16;

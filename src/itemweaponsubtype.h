@@ -29,7 +29,7 @@ THE SOFTWARE.
 class ItemWeaponSubtype : public ItemSubtype {
     Q_OBJECT
 public:
-    ItemWeaponSubtype(DFInstance *df, VIRTADDR address, QObject *parent = 0);
+    ItemWeaponSubtype(DFInstance *df, VPTR address, QObject *parent = 0);
     ~ItemWeaponSubtype();
 
     QString group_name() const {return m_group_name;}

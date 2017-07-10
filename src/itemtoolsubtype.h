@@ -28,7 +28,7 @@ THE SOFTWARE.
 class ItemToolSubtype : public ItemSubtype {
     Q_OBJECT
 public:
-    ItemToolSubtype(DFInstance *df, VIRTADDR address, QObject *parent = 0)
+    ItemToolSubtype(DFInstance *df, VPTR address, QObject *parent = 0)
         : ItemSubtype(df,address,parent)
     {
         set_base_offsets();

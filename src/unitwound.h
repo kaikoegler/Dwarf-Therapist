@@ -35,7 +35,7 @@ class UnitWound
 {
 public:
     UnitWound();
-    UnitWound(DFInstance *df, VIRTADDR base_addr, FlagArray caste_flags, UnitHealth *uh);
+    UnitWound(DFInstance *df, VPTR base_addr, FlagArray caste_flags, UnitHealth *uh);
     UnitWound(DFInstance *df, int body_part_id, UnitHealth *uh);
     virtual ~UnitWound();
 
@@ -83,7 +83,7 @@ public:
     bool is_critical() {return m_is_critical;}
 private:
     DFInstance *m_df;
-    VIRTADDR m_addr;
+    VPTR m_addr;
     UnitHealth *m_unitHealth;
     FlagArray m_caste_flags;
 

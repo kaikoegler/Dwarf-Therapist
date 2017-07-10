@@ -13,13 +13,13 @@ class Plant : public QObject {
     Q_OBJECT
 public:
     Plant(QObject *parent = 0);
-    Plant(DFInstance *df, VIRTADDR address, int index, QObject *parent = 0);
+    Plant(DFInstance *df, VPTR address, int index, QObject *parent = 0);
     virtual ~Plant();
 
-    static Plant* get_plant(DFInstance *df, const VIRTADDR &address, int index);
+    static Plant* get_plant(DFInstance *df, const VPTR &address, int index);
 
     //! Return the memory address (in hex) of this Plant in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
 
     int id() {return m_index;}
     Material *get_plant_material(int index);
@@ -36,7 +36,7 @@ public:
 
 private:
     int m_index;
-    VIRTADDR m_address;
+    VPTR m_address;
     DFInstance * m_df;
     MemoryLayout * m_mem;
     QVector<Material*> m_plant_mats;

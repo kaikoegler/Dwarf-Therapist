@@ -46,7 +46,7 @@ public:
 
     void add_equip_count(ITEM_TYPE itype, int count);
 
-    void add_uniform_item(VIRTADDR ptr, ITEM_TYPE itype, int count=1);
+    void add_uniform_item(VPTR ptr, ITEM_TYPE itype, int count=1);
     void add_uniform_item(ITEM_TYPE itype, short sub_type, short job_skill, int count=1);
     void add_uniform_item(ITEM_TYPE itype, short sub_type, QList<int> job_skills, int count=1);
     void add_uniform_item(ITEM_TYPE itype, ItemDefUniform *uItem, int count=1);

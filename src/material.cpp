@@ -38,7 +38,7 @@ Material::Material(QObject *parent)
 {
 }
 
-Material::Material(DFInstance *df, VIRTADDR address, int index, bool inorganic, QObject *parent)
+Material::Material(DFInstance *df, VPTR address, int index, bool inorganic, QObject *parent)
     : QObject(parent)
     , m_index(index)
     , m_address(address)
@@ -56,7 +56,7 @@ Material::~Material() {
     m_state_names.clear();
 }
 
-Material* Material::get_material(DFInstance *df, const VIRTADDR & address, int index, bool inorganic, QObject *parent) {
+Material* Material::get_material(DFInstance *df, const VPTR & address, int index, bool inorganic, QObject *parent) {
     return new Material(df, address, index, inorganic, parent);
 }
 
@@ -101,7 +101,7 @@ void Material::read_material() {
 
     QString generic_state_name = m_df->read_string(m_address);
     if(!generic_state_name.isEmpty()){
-        VIRTADDR template_addr = m_df->get_material_template(generic_state_name + "_TEMPLATE");
+        VPTR template_addr = m_df->get_material_template(generic_state_name + "_TEMPLATE");
         if(template_addr){
             QString template_state = m_df->read_string(template_addr + m_mem->material_offset("solid_name"));
             if(template_state != generic_state_name)

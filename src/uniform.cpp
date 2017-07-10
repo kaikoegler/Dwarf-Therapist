@@ -52,7 +52,7 @@ void Uniform::add_uniform_item(ITEM_TYPE itype, short sub_type, QList<int> job_s
     add_uniform_item(itype,uItem,count);
 }
 
-void Uniform::add_uniform_item(VIRTADDR addr, ITEM_TYPE itype, int count){
+void Uniform::add_uniform_item(VPTR addr, ITEM_TYPE itype, int count){
     ItemDefUniform *uItem;
     //backpacks, quivers and flasks are assigned specific items, so pass the id number rather than an address
     if(!Item::is_supplies(itype) && !Item::is_ranged_equipment(itype)){

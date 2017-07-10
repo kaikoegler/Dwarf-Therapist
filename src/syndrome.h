@@ -41,7 +41,7 @@ public:
     };
 
     Syndrome();
-    Syndrome(DFInstance *df, VIRTADDR addr);
+    Syndrome(DFInstance *df, VPTR addr);
     virtual ~Syndrome();
 
     QStringList class_names() {return m_class_names;}
@@ -65,7 +65,7 @@ public:
 private:
     DFInstance *m_df;
     MemoryLayout *m_mem;
-    VIRTADDR m_addr;
+    VPTR m_addr;
     int m_transform_race;
     bool m_has_transform;
     bool m_is_sickness;
@@ -78,7 +78,7 @@ private:
     //pairs of percent change, and flat additive changes
     QHash<ATTRIBUTES_TYPE, syn_att_change> m_attribute_changes;
 
-    void load_attribute_changes(VIRTADDR addr, int start_idx, int count, int add_offset, int end);
+    void load_attribute_changes(VPTR addr, int start_idx, int count, int add_offset, int end);
 
 };
 

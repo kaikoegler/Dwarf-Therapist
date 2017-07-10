@@ -42,7 +42,6 @@ struct iovec {
 
 DFInstanceLinux::DFInstanceLinux(QObject* parent)
     : DFInstanceNix(parent)
-    , m_inject_addr(-1)
     , m_alloc_start(0)
     , m_alloc_end(0)
     , m_warned_pvm(false)
@@ -109,12 +108,11 @@ bool DFInstanceLinux::detach() {
     return m_attach_count > 0;
 }
 
-SSIZE DFInstanceLinux::process_vm(long number, const VIRTADDR addr
-                                  , const USIZE bytes, void *buffer) {
+ssize_t DFInstanceLinux::process_vm(long number, const VPTR addr, const size_t bytes, void *buffer) {
     struct iovec local_iov = {buffer, bytes};
     struct iovec remote_iov = {reinterpret_cast<void *>(addr), bytes};
 
-    SSIZE r = syscall(number, m_pid, &local_iov, 1UL, &remote_iov, 1UL, 0UL);
+    ssize_t r = syscall(number, m_pid, &local_iov, 1UL, &remote_iov, 1UL, 0UL);
 
     if (r == -1 && errno == ENOSYS && !m_warned_pvm) {
         m_warned_pvm = true;
@@ -126,7 +124,7 @@ SSIZE DFInstanceLinux::process_vm(long number, const VIRTADDR addr
     return r;
 }
 
-USIZE DFInstanceLinux::read_raw_ptrace(const VIRTADDR addr, const USIZE bytes, void *buffer) {
+size_t DFInstanceLinux::read_raw_ptrace(const VPTR addr, const size_t bytes, void *buffer) {
     int bytes_read = 0;
 
     // try to attach, will be ignored if we're already attached
@@ -140,15 +138,15 @@ USIZE DFInstanceLinux::read_raw_ptrace(const VIRTADDR addr, const USIZE bytes, v
         return bytes_read;
     }
 
-    m_memory_file.seek(addr);
+    m_memory_file.seek(reinterpret_cast<qint64>(addr));
     bytes_read = m_memory_file.read(static_cast<char *>(buffer), bytes);
 
     detach();
     return bytes_read;
 }
 
-USIZE DFInstanceLinux::read_raw(const VIRTADDR addr, const USIZE bytes, void *buffer) {
-    SSIZE bytes_read = process_vm(SYS_process_vm_readv, addr, bytes, buffer);
+size_t DFInstanceLinux::read_raw(const VPTR addr, const size_t bytes, void *buffer) {
+    ssize_t bytes_read = process_vm(SYS_process_vm_readv, addr, bytes, buffer);
     if (bytes_read < 0) {
         memset(buffer, 0, bytes);
 
@@ -166,7 +164,7 @@ USIZE DFInstanceLinux::read_raw(const VIRTADDR addr, const USIZE bytes, void *bu
     return bytes_read;
 }
 
-USIZE DFInstanceLinux::write_raw_ptrace(const VIRTADDR addr, const USIZE bytes,
+size_t DFInstanceLinux::write_raw_ptrace(const VPTR addr, const size_t bytes,
                                         const void *buffer) {
     /* Since most kernels won't let us write to /proc/<pid>/mem, we have to poke
      * out data in n bytes at a time. Good thing we read way more than we write.
@@ -177,17 +175,17 @@ USIZE DFInstanceLinux::write_raw_ptrace(const VIRTADDR addr, const USIZE bytes,
 
     attach();
 
-    const USIZE stepsize = sizeof(unsigned long);
-    USIZE bytes_written = 0; // keep track of how much we've written
-    USIZE steps = bytes / stepsize;
+    const size_t stepsize = sizeof(unsigned long);
+    size_t bytes_written = 0; // keep track of how much we've written
+    size_t steps = bytes / stepsize;
     LOGD << "WRITE_RAW_PTRACE: WILL WRITE" << bytes << "BYTES FROM" << buffer
          << "TO" << hexify(addr) << "OVER" << steps + !!bytes % stepsize
          << "STEPS, WITH STEPSIZE " << stepsize;
 
-    USIZE offset = 0;
+    size_t offset = 0;
 
     // for each step write a single word to the child
-    for (USIZE i = 0; i < steps; ++i) {
+    for (size_t i = 0; i < steps; ++i) {
         const unsigned long data = static_cast<const unsigned long *>(buffer)[i];
         LOGD << "WRITE_RAW_PTRACE: WRITING" << hexify(data) << "TO" << addr + offset;
         if (ptrace(PTRACE_POKEDATA, m_pid, addr + offset, data)) {
@@ -219,18 +217,16 @@ USIZE DFInstanceLinux::write_raw_ptrace(const VIRTADDR addr, const USIZE bytes,
     return bytes_written;
 }
 
-USIZE DFInstanceLinux::write_raw(const VIRTADDR addr, const USIZE bytes,
-                                 const void *buffer) {
+size_t DFInstanceLinux::write_raw(const VPTR addr, const size_t bytes, const void *buffer) {
     // const_cast is safe because process_vm passes the params as is
-    SSIZE bytes_written = process_vm(SYS_process_vm_writev, addr, bytes
-                                     , const_cast<void *>(buffer));
+    ssize_t bytes_written = process_vm(SYS_process_vm_writev, addr, bytes, const_cast<void *>(buffer));
     if (bytes_written == -1) {
         if (errno == ENOSYS) {
             return write_raw_ptrace(addr, bytes, buffer);
         } else {
             LOGE << "WRITE_RAW:" << QString(strerror(errno)) << "WRITING" << bytes << "BYTES FROM" << buffer << "TO" << hexify(addr);
         }
-    } else if ((USIZE)bytes_written != bytes) {
+    } else if ((size_t)bytes_written != bytes) {
         LOGW << "WRITE_RAW: PARTIALLY WROTE:" << bytes_written << "BYTES OF" << bytes << "BYTES FROM" << buffer << "TO" << hexify(addr);
     } else {
         LOGD << "WRITE_RAW: WROTE" << bytes << "BYTES FROM" << buffer << "TO" << hexify(addr);
@@ -274,7 +270,6 @@ void DFInstanceLinux::find_running_copy() {
         return;
     }
 
-    m_inject_addr = unsigned(-1);
     m_alloc_start = 0;
     m_alloc_end = 0;
 
@@ -288,14 +283,14 @@ void DFInstanceLinux::find_running_copy() {
 
 /* Support for executing system calls in the context of the game process. */
 
-static const char syscall_code[] = {
+static const quint8 syscall_code[] = {
     // SYSCALL
-    static_cast<char>(0x0f), static_cast<char>(0x05)
+    0x0f, 0x05
 };
 
 static_assert(sizeof(syscall_code) <= sizeof(long), "syscall code must fit in long");
 
-static const VIRTADDR df_exe_base = 0x00400000;
+static const long df_exe_base = 0x00400000;
 
 long DFInstanceLinux::remote_syscall(int syscall_id,
      long arg0, long arg1, long arg2,
@@ -303,7 +298,7 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
 {
     attach();
 
-    // get the old value of some RAM
+    // get the old value of some executable RAM
     long old_code_word = ptrace(PTRACE_PEEKTEXT, m_pid, df_exe_base, 0);
     errno = 0;
     if (old_code_word == -1 && errno != 0) {
@@ -376,38 +371,38 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
 
 /* Memory allocation for strings using remote mmap. */
 
-VIRTADDR DFInstanceLinux::mmap_area(VIRTADDR start, USIZE size) {
-    VIRTADDR return_value = remote_syscall(SYS_mmap, start, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+VPTR DFInstanceLinux::mmap_area(VPTR start, size_t size) {
+    auto return_value = remote_syscall(SYS_mmap, reinterpret_cast<long>(start), size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     // Raw syscalls can't use errno, so the error is in the result.
     // No valid return value can be in the -4095..-1 range.
-    if (int(return_value) < 0 && int(return_value) >= -4095) {
+    if (return_value < 0 && return_value >= -4095) {
         LOGE << "Injected MMAP failed with error: " << -return_value;
-        return_value = -1;
+        return nullptr;
     }
 
-    return return_value;
+    return reinterpret_cast<VPTR>(return_value);
 }
 
-VIRTADDR DFInstanceLinux::alloc_chunk(USIZE size) {
+VPTR DFInstanceLinux::alloc_chunk(size_t size) {
     if (size > 1048576) {
-        return 0;
+        return nullptr;
     }
     if ((m_alloc_end - m_alloc_start) < size) {
         int apages = (size*2 + 4095)/4096;
         int asize = apages*4096;
 
         // Try to request contiguous allocation as a hint
-        VIRTADDR new_block = mmap_area(m_alloc_end, asize);
-        if (int(new_block) == -1)
-            return 0;
+        VPTR new_block = mmap_area(m_alloc_end, asize);
+        if (!new_block)
+            return new_block;
 
         if (new_block != m_alloc_end)
             m_alloc_start = new_block;
         m_alloc_end = new_block + asize;
     }
 
-    VIRTADDR rv = m_alloc_start;
+    VPTR rv = m_alloc_start;
     m_alloc_start += size;
     return rv;
 }

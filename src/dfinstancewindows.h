@@ -39,14 +39,12 @@ public:
     void find_running_copy();
     bool df_running();
 
-    QString get_last_error();
-
-    USIZE read_raw(VIRTADDR addr, USIZE bytes, void *buffer);
-    QString read_string(VIRTADDR addr);
+    size_t read_raw(VPTR addr, size_t bytes, void *buffer);
+    QString read_string(VPTR addr);
 
     // Writing
-    USIZE write_raw(VIRTADDR addr, USIZE bytes, const void *buffer);
-    USIZE write_string(VIRTADDR addr, const QString &str);
+    size_t write_raw(VPTR addr, size_t bytes, const void *buffer);
+    size_t write_string(VPTR addr, QString str);
 
     // windows doesn't really have a concept of
     // attaching/detaching from the process like Linux does, so just

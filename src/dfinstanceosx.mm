@@ -113,7 +113,7 @@ bool DFInstanceOSX::detach() {
     return true;
 }
 
-USIZE DFInstanceOSX::read_raw(VIRTADDR addr, USIZE bytes, void *buffer) {
+size_t DFInstanceOSX::read_raw(VPTR addr, size_t bytes, void *buffer) {
     vm_size_t bytes_read = 0;
     memset(buffer, 0, bytes);
 
@@ -124,7 +124,7 @@ USIZE DFInstanceOSX::read_raw(VIRTADDR addr, USIZE bytes, void *buffer) {
     return bytes_read;
 }
 
-USIZE DFInstanceOSX::write_raw(VIRTADDR addr, USIZE bytes, const void *buffer) {
+size_t DFInstanceOSX::write_raw(VPTR addr, size_t bytes, const void *buffer) {
     attach();
     kern_return_t result = vm_write(m_task, (vm_address_t)addr, (pointer_t)buffer, bytes);
     detach();
@@ -178,7 +178,7 @@ void DFInstanceOSX::find_running_copy() {
     m_alloc_end = 0;
 }
 
-VIRTADDR DFInstanceOSX::alloc_chunk(USIZE size) {
+VPTR DFInstanceOSX::alloc_chunk(size_t size) {
     if (size > 1048576) {
         return 0;
     }
@@ -208,7 +208,7 @@ VIRTADDR DFInstanceOSX::alloc_chunk(USIZE size) {
         m_alloc_end = new_block + asize;
     }
 
-    VIRTADDR rv = m_alloc_start;
+    VPTR rv = m_alloc_start;
     m_alloc_start += size;
 
     return rv;
@@ -219,7 +219,7 @@ bool DFInstanceOSX::authorize() {
     OSStatus status;
     AuthorizationRef authorizationRef;
 
-    char therapistExe[1024];
+    VPTR therapistExe[1024];
     uint32_t size = sizeof(therapistExe);
     _NSGetExecutablePath(therapistExe, &size);
     //NSLog(@"Therapist path: %s\n", therapistExe);
@@ -269,7 +269,7 @@ bool DFInstanceOSX::authorize() {
     }
 
     FILE *pipe = NULL;
-    char readBuffer[32];
+    VPTR readBuffer[32];
 
     status = AuthorizationExecuteWithPrivileges(authorizationRef, therapistExe,
                                                 kAuthorizationFlagDefaults, nil, &pipe);

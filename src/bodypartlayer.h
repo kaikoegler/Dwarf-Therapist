@@ -25,7 +25,7 @@ public:
     {
     }
 
-    BodyPartLayer(VIRTADDR layer_addr, int id, DFInstance *df, Race *r)
+    BodyPartLayer(VPTR layer_addr, int id, DFInstance *df, Race *r)
         : m_addr(layer_addr)
         , m_df(df)
         , m_race(r)
@@ -45,7 +45,7 @@ public:
         m_tissue_id = m_df->read_int(m_addr + mem->health_offset("layer_tissue"));
 
         if(m_race){
-            VIRTADDR t_addr = m_race->get_tissue_address(m_tissue_id);
+            VPTR t_addr = m_race->get_tissue_address(m_tissue_id);
             if(t_addr){
                 m_tissue_name = m_df->read_string(t_addr + mem->health_offset("tissue_name"));
                 m_tissue_flags = FlagArray(m_df,t_addr+mem->health_offset("tissue_flags"));
@@ -88,7 +88,7 @@ public:
     int global_layer_id() {return m_global_layer_id;}
 
 private:
-    VIRTADDR m_addr;
+    VPTR m_addr;
     DFInstance *m_df;
     Race *m_race;
     int m_layer_id;

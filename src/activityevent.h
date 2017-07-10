@@ -31,7 +31,7 @@ class DFInstance;
 class ActivityEvent : public QObject {
     Q_OBJECT
 public:
-    ActivityEvent(DFInstance *df, VIRTADDR addr, QHash<int, QPair<int, QString> > *histfig_actions, QObject *parent = 0);
+    ActivityEvent(DFInstance *df, VPTR addr, QHash<int, QPair<int, QString> > *histfig_actions, QObject *parent = 0);
 
     typedef enum {
         ACT_UNKNOWN = -1,
@@ -108,7 +108,7 @@ public:
 
 private:
     DFInstance *m_df;
-    VIRTADDR m_address;
+    VPTR m_address;
     QHash<int,QPair<int, QString> > *m_histfig_actions;
 
     short m_id;

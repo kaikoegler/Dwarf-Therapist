@@ -35,8 +35,8 @@ public:
     virtual ~DFInstanceOSX();
     void find_running_copy();
 
-    USIZE read_raw(VIRTADDR addr, USIZE bytes, void *buffer);
-    USIZE write_raw(VIRTADDR addr, USIZE bytes, const void *buffer);
+    size_t read_raw(VPTR addr, size_t bytes, void *buffer);
+    size_t write_raw(VPTR addr, size_t bytes, const void *buffer);
 
     bool attach();
     bool detach();
@@ -51,8 +51,8 @@ protected:
     bool set_pid();
 
 private:
-    VIRTADDR alloc_chunk(USIZE size);
-    VIRTADDR m_alloc_start, m_alloc_end;
+    VPTR alloc_chunk(size_t size);
+    VPTR m_alloc_start, m_alloc_end;
     int m_alloc_remaining, m_size_allocated;
 };
 

@@ -8,7 +8,7 @@ ItemTool::ItemTool(const Item &baseItem)
     read_def();
 }
 
-ItemTool::ItemTool(DFInstance *df, VIRTADDR item_addr)
+ItemTool::ItemTool(DFInstance *df, VPTR item_addr)
     : Item(df,item_addr)
     , m_tool_def(0)
 {

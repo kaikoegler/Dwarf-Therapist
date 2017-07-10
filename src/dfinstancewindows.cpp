@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include <QMessageBox>
 #include <QTextCodec>
 
+#define UNICODE
+#define _UNICODE
 #include <windows.h>
 #include <psapi.h>
 
@@ -36,8 +38,15 @@ THE SOFTWARE.
 #include "utils.h"
 #include "gamedatareader.h"
 #include "memorylayout.h"
-#include "memorysegment.h"
 #include "dwarftherapist.h"
+
+#if defined(Q_PROCESSOR_X86_32)
+#define BASE_ADDR 0x400000UL
+#elif defined(Q_PROCESSOR_X86_64)
+#define BASE_ADDR 0x140000000ULL
+#else
+#error Unsupported architecture
+#endif
 
 DFInstanceWindows::DFInstanceWindows(QObject* parent)
     : DFInstance(parent)
@@ -49,13 +58,13 @@ DFInstanceWindows::~DFInstanceWindows() {
     CloseHandle(m_proc);
 }
 
-QString DFInstanceWindows::get_last_error() {
+static QString get_last_error() {
     LPWSTR bufPtr = NULL;
     DWORD err = GetLastError();
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                  FORMAT_MESSAGE_FROM_SYSTEM |
-                  FORMAT_MESSAGE_IGNORE_INSERTS,
-                  NULL, err, 0, (LPWSTR)&bufPtr, 0, NULL);
+    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                   FORMAT_MESSAGE_FROM_SYSTEM |
+                   FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL, err, 0, (LPWSTR)&bufPtr, 0, NULL);
     const QString result = bufPtr ? QString::fromWCharArray(bufPtr).trimmed()
                                   : QString("Unknown Error %1").arg(err);
     LocalFree(bufPtr);
@@ -63,19 +72,19 @@ QString DFInstanceWindows::get_last_error() {
 }
 
 QString DFInstanceWindows::calculate_checksum(const IMAGE_NT_HEADERS &pe_header) {
-    time_t compile_timestamp = pe_header.FileHeader.TimeDateStamp;
+    DWORD compile_timestamp = pe_header.FileHeader.TimeDateStamp;
     LOGI << "Target EXE was compiled at " << QDateTime::fromTime_t(compile_timestamp).toString(Qt::ISODate);
     return hexify(compile_timestamp).toLower();
 }
 
-QString DFInstanceWindows::read_string(const uint &addr) {
-    USIZE len = read_int(addr + memory_layout()->string_length_offset());
-    USIZE cap = read_int(addr + memory_layout()->string_cap_offset());
-    VIRTADDR buffer_addr = addr + memory_layout()->string_buffer_offset();
+QString DFInstanceWindows::read_string(VPTR addr) {
+    size_t len = read_int(addr + memory_layout()->string_length_offset());
+    size_t cap = read_int(addr + memory_layout()->string_cap_offset());
+    VPTR buffer_addr = addr + memory_layout()->string_buffer_offset();
     if (cap >= 16)
         buffer_addr = read_addr(buffer_addr);
 
-    char buf[1024];
+    VPTR buf[1024];
 
     if (len == 0 || cap == 0) {
         LOGW << "string at" << addr << "is zero-length or zero-cap";
@@ -95,7 +104,7 @@ QString DFInstanceWindows::read_string(const uint &addr) {
     return QTextCodec::codecForName("IBM437")->toUnicode(buf, len);
 }
 
-USIZE DFInstanceWindows::write_string(VIRTADDR addr, const QString &str) {
+size_t DFInstanceWindows::write_string(VPTR addr, const QString &str) {
     /*
 
       THIS IS TOTALLY DANGEROUS
@@ -106,7 +115,7 @@ USIZE DFInstanceWindows::write_string(VIRTADDR addr, const QString &str) {
     // unless it has already been expanded to a bigger allocation
 
     int cap = read_int(addr + memory_layout()->string_cap_offset());
-    VIRTADDR buffer_addr = addr + memory_layout()->string_buffer_offset();
+    VPTR buffer_addr = addr + memory_layout()->string_buffer_offset();
     if( cap >= 16 )
         buffer_addr = read_addr(buffer_addr);
 
@@ -118,21 +127,19 @@ USIZE DFInstanceWindows::write_string(VIRTADDR addr, const QString &str) {
     return bytes_written;
 }
 
-USIZE DFInstanceWindows::read_raw(VIRTADDR addr, USIZE bytes,
-                                void *buffer) {
+size_t DFInstanceWindows::read_raw(VPTR addr, size_t bytes, void *buffer) {
     ZeroMemory(buffer, bytes);
-    USIZE bytes_read = 0;
-    ReadProcessMemory(m_proc, reinterpret_cast<LPCVOID>(addr), buffer,
-                      bytes, reinterpret_cast<SIZE_T*>(&bytes_read));
+    size_t bytes_read = 0;
+    if (!ReadProcessMemory(m_proc, reinterpret_cast<LPCVOID>(addr), buffer, bytes, &bytes_read))
+        LOGE << "ReadProcessMemory failed:" << get_last_error();
     return bytes_read;
 }
 
-USIZE DFInstanceWindows::write_raw(VIRTADDR addr, USIZE bytes, const void *buffer) {
-    USIZE bytes_written = 0;
-    WriteProcessMemory(m_proc, reinterpret_cast<LPVOID>(addr), buffer,
-                       bytes, reinterpret_cast<SIZE_T*>(&bytes_written));
+size_t DFInstanceWindows::write_raw(VPTR addr, size_t bytes, const void *buffer) {
+    size_t bytes_written = 0;
+    if (!WriteProcessMemory(m_proc, reinterpret_cast<LPVOID>(addr), buffer, bytes, &bytes_written))
+        LOGE << "WriteProcessMemory failed:" << get_last_error();
 
-    Q_ASSERT(bytes_written == bytes);
     return bytes_written;
 }
 
@@ -141,7 +148,7 @@ static const QSet<QString> df_window_classes{"OpenGL", "SDL_app"};
 BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
     auto pids = reinterpret_cast<QSet<PID> *>(lParam);
     WCHAR classNameW[8];
-    if (!GetClassName(hWnd, classNameW, sizeof(classNameW))) {
+    if (!GetClassNameW(hWnd, classNameW, sizeof(classNameW))) {
         LOGE << "GetClassName failed:" << get_last_error();
         return false;
     }
@@ -149,9 +156,9 @@ BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
     if (!className && wcscmp(className, L"OpenGL") && wcscmp(className, L"SDL_app"))
         return true;
 
-    WCHAR windowName[16];
-    if (!GetWindowName(hWnd, windowName, sizeof(windowName))) {
-        LOGE << "GetWindowName failed:" << get_last_error();
+    WCHAR windowName[16] = {0};
+    if (!GetWindowTextW(hWnd, windowName, sizeof(windowName))) {
+        LOGE << "GetWindowText failed:" << get_last_error();
         return false;
     }
 
@@ -159,6 +166,8 @@ BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
 
     if (wcscmp(windowName, L"Dwarf Fortress"))
         return true;
+
+    PID pid;
 
     GetWindowThreadProcessId(hWnd, &pid);
     if (!pid) {
@@ -173,7 +182,7 @@ BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
 
 bool DFInstanceWindows::set_pid(){
     QSet<PID> pids;
-    if (!EnumWindows(enumWindowsProc, &pids)) {
+    if (!EnumWindows(enumWindowsProc, static_cast<LPARAM>(&pids))) {
         LOGE << "error enumerating windows";
         return false;
     }
@@ -235,7 +244,7 @@ void DFInstanceWindows::find_running_copy() {
             LOGE << "Error enumerating modules!" << get_last_error();
             return;
         } else {
-            VIRTADDR base_addr = me32.modBaseAddr;
+            VPTR base_addr = (VPTR )me32.modBaseAddr;
             IMAGE_DOS_HEADER dos_header;
             read_raw(base_addr, sizeof(dos_header), &dos_header);
             if(dos_header.e_magic != IMAGE_DOS_SIGNATURE){
@@ -252,7 +261,7 @@ void DFInstanceWindows::find_running_copy() {
             }
 
             LOGI << "RAW BASE ADDRESS:" << base_addr;
-            m_base_addr = base_addr - 0x00400000;
+            m_base_addr = base_addr - pe_header.OptionalHeader.ImageBase;
 
             m_status = DFS_CONNECTED;
             set_memory_layout(calculate_checksum(pe_header));

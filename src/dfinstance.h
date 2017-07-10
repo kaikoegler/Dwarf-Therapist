@@ -76,51 +76,51 @@ public:
     } DFI_STATUS;
 
     // accessors
-    VIRTADDR df_base_addr() const {return m_base_addr;}
+    VPTR df_base_addr() const {return m_base_addr;}
     const QString df_checksum() {return m_df_checksum;}
     const QString layout_subdir();
     DFI_STATUS status() const {return m_status;}
-    WORD dwarf_race_id() {return m_dwarf_race_id;}
+    short dwarf_race_id() {return m_dwarf_race_id;}
     QList<MemoryLayout*> get_layouts() { return m_memory_layouts.values(); }
     QDir get_df_dir() { return m_df_dir; }
-    WORD current_year() {return m_current_year;}
-    WORD dwarf_civ_id() {return m_dwarf_civ_id;}
+    quint32 current_year() {return m_current_year;}
+    int dwarf_civ_id() {return m_dwarf_civ_id;}
     const QStringList status_err_msg();
 
     // memory reading
-    template<typename T> T read_mem(VIRTADDR addr) {
+    template<typename T> T read_mem(VPTR addr, bool no_failsafe = false) {
         T buf;
-        // TODO: error checking?
-        read_raw(addr, sizeof(T), &buf);
+        if (read_raw(addr, sizeof(T), &buf) != sizeof(T))
+            buf = T();
         return buf;
     }
-    virtual USIZE read_raw(VIRTADDR addr, USIZE bytes, void *buf) = 0;
-    virtual QString read_string(VIRTADDR addr) = 0;
-    USIZE read_raw(VIRTADDR addr, USIZE bytes, QByteArray &buffer);
-    BYTE read_byte(VIRTADDR addr);
-    WORD read_word(VIRTADDR addr);
-    VIRTADDR read_addr(VIRTADDR addr);
-    qint16 read_short(VIRTADDR addr);
-    qint32 read_int(VIRTADDR addr);
-    QVector<VIRTADDR> enumerate_vector(VIRTADDR addr);
-    QVector<qint16> enumerate_vector_short(VIRTADDR addr);
+    virtual size_t read_raw(VPTR addr, size_t bytes, void *buf) = 0;
+    virtual QString read_string(VPTR addr) = 0;
+    size_t read_raw(VPTR addr, size_t bytes, QByteArray &buffer);
+    quint8 read_byte(VPTR addr);
+    quint32 read_word(VPTR addr);
+    VPTR read_addr(VPTR addr);
+    qint16 read_short(VPTR addr);
+    qint32 read_int(VPTR addr);
+    QVector<VPTR> enumerate_vector(VPTR addr);
+    QVector<qint16> enumerate_vector_short(VPTR addr);
     template<typename T>
-    QVector<T> enum_vec(VIRTADDR addr) {
+    QVector<T> enum_vec(VPTR addr) {
         QVector<T> out;
-        VIRTADDR start = read_addr(addr);
-        VIRTADDR end = read_addr(addr + sizeof(VIRTADDR));
-        USIZE bytes = end - start;
+        VPTR start = read_addr(addr);
+        VPTR end = read_addr(addr + sizeof(VPTR ));
+        size_t bytes = end - start;
         if (bytes % sizeof(T)) {
             LOGE << "VECTOR SIZE IS NOT A MULTIPLE OF TYPE";
         } else {
             out.resize(bytes / sizeof(T));
-            USIZE bytes_read = read_raw(start, bytes, out.data());
+            size_t bytes_read = read_raw(start, bytes, out.data());
             TRACE << "Found" << bytes_read / sizeof(T) << "things in vector at" << hexify(addr);
         }
         return out;
     }
-    Word * read_dwarf_word(VIRTADDR addr);
-    QString read_dwarf_name(VIRTADDR addr);
+    Word * read_dwarf_word(VPTR addr);
+    QString read_dwarf_name(VPTR addr);
 
     QString pprint(const QByteArray &ba);
 
@@ -132,10 +132,10 @@ public:
     bool add_new_layout(const QString & filename, const QString data, QString &result_msg);
 
     // Writing
-    virtual USIZE write_raw(VIRTADDR addr, USIZE bytes, const void *buffer) = 0;
-    USIZE write_raw(VIRTADDR addr, USIZE bytes, const QByteArray &buffer);
-    virtual USIZE write_string(VIRTADDR addr, const QString &str) = 0;
-    USIZE write_int(VIRTADDR addr, int val);
+    virtual size_t write_raw(VPTR addr, size_t bytes, const void *buffer) = 0;
+    size_t write_raw(VPTR addr, size_t bytes, const QByteArray &buffer);
+    virtual size_t write_string(VPTR addr, const QString &str) = 0;
+    size_t write_int(VPTR addr, int val);
 
     bool is_attached() {return m_attach_count > 0;}
     virtual bool attach() = 0;
@@ -190,19 +190,19 @@ public:
         m_enabled_labor_count[id] += change;
     }
 
-    QString get_language_word(VIRTADDR addr);
-    QString get_translated_word(VIRTADDR addr);
-    QString get_name(VIRTADDR addr, bool translate);
+    QString get_language_word(VPTR addr);
+    QString get_translated_word(VPTR addr);
+    QString get_name(VPTR addr, bool translate);
 
     Reaction * get_reaction(QString tag) { return m_reactions.value(tag, 0); }
     Race * get_race(const uint & offset) { return m_races.value(offset, NULL); }
     QVector<Race *> get_races() {return m_races;}
 
-    VIRTADDR find_historical_figure(int hist_id);
-    VIRTADDR find_identity(int id);
-    VIRTADDR find_event(int id);
+    VPTR find_historical_figure(int hist_id);
+    VPTR find_identity(int id);
+    VPTR find_event(int id);
     QPair<int, QString> find_activity(int histfig_id);
-    VIRTADDR find_occupation(int histfig_id);
+    VPTR find_occupation(int histfig_id);
 
     FortressEntity * fortress() {return m_fortress;}
 
@@ -212,14 +212,14 @@ public:
         QString pref_category;
     };
 
-    VIRTADDR get_syndrome(int idx) {
+    VPTR get_syndrome(int idx) {
         return m_all_syndromes.value(idx);
     }
-    VIRTADDR get_material_template(QString temp_id) {return m_material_templates.value(temp_id);}
+    VPTR get_material_template(QString temp_id) {return m_material_templates.value(temp_id);}
     QVector<Material *> get_inorganic_materials() {return m_inorganics_vector;}
-    QHash<ITEM_TYPE, QVector<VIRTADDR> > get_all_item_defs() {return m_itemdef_vectors;}
-    QVector<VIRTADDR>  get_colors() {return m_color_vector;}
-    QVector<VIRTADDR> get_shapes() {return m_shape_vector;}
+    QHash<ITEM_TYPE, QVector<VPTR> > get_all_item_defs() {return m_itemdef_vectors;}
+    QVector<VPTR>  get_colors() {return m_color_vector;}
+    QVector<VPTR> get_shapes() {return m_shape_vector;}
     QVector<Plant *> get_plants() {return m_plants_vector;}
     QVector<Material *> get_base_materials() {return m_base_materials;}
 
@@ -233,8 +233,8 @@ public:
 
     Material * find_material(int mat_index, short mat_type);
 
-    QVector<VIRTADDR> get_itemdef_vector(ITEM_TYPE i);
-    VIRTADDR get_item_address(ITEM_TYPE itype, int item_id);
+    QVector<VPTR> get_itemdef_vector(ITEM_TYPE i);
+    VPTR get_item_address(ITEM_TYPE itype, int item_id);
 
     QString get_preference_item_name(int index, int subtype);
     QString get_preference_other_name(int index, PREF_TYPES p_type);
@@ -258,14 +258,14 @@ public:
     QList<Squad*> squads() {return m_squads;}
 
 protected:
-    VIRTADDR m_base_addr;
+    VPTR m_base_addr;
     QString m_df_checksum;
     MemoryLayout *m_layout;
     int m_attach_count;
     QTimer *m_heartbeat_timer;
     short m_dwarf_race_id;
     int m_dwarf_civ_id;
-    WORD m_current_year;
+    quint32 m_current_year;
     QDir m_df_dir;
     QVector<Dwarf*> m_actual_dwarves;
     QVector<Dwarf*> m_labor_capable_dwarves;
@@ -278,7 +278,7 @@ protected:
 
     void load_population_data();
     void load_role_ratings();
-    bool check_vector(VIRTADDR start, VIRTADDR end, VIRTADDR addr);
+    bool check_vector(VPTR start, VPTR end, VPTR addr);
 
     /*! this hash will hold a map of all loaded and valid memory layouts found
         on disk, the key is a QString of the checksum since other OSs will use
@@ -309,27 +309,27 @@ private:
     QVector<Material *> m_inorganics_vector;
     QVector<Material *> m_base_materials;
 
-    QVector<VIRTADDR> get_creatures(bool report_progress = true);
+    QVector<VPTR> get_creatures(bool report_progress = true);
 
-    QHash<int,VIRTADDR> m_hist_figures;
-    QVector<VIRTADDR> m_fake_identities;
-    QHash<int,VIRTADDR> m_occupations;
-    QHash<int,VIRTADDR> m_events;
+    QHash<int,VPTR> m_hist_figures;
+    QVector<VPTR> m_fake_identities;
+    QHash<int,VPTR> m_occupations;
+    QHash<int,VPTR> m_events;
     QMap<int,QPointer<Activity> > m_activities;
 
-    QHash<ITEM_TYPE, QVector<VIRTADDR> > m_itemdef_vectors;
-    QHash<ITEM_TYPE, QVector<VIRTADDR> > m_items_vectors;
-    QHash<ITEM_TYPE, QHash<int,VIRTADDR> >  m_mapped_items;
+    QHash<ITEM_TYPE, QVector<VPTR> > m_itemdef_vectors;
+    QHash<ITEM_TYPE, QVector<VPTR> > m_items_vectors;
+    QHash<ITEM_TYPE, QHash<int,VPTR> >  m_mapped_items;
 
-    QVector<VIRTADDR> m_color_vector;
-    QVector<VIRTADDR> m_shape_vector;
-    QVector<VIRTADDR> m_poetic_vector;
-    QVector<VIRTADDR> m_music_vector;
-    QVector<VIRTADDR> m_dance_vector;
+    QVector<VPTR> m_color_vector;
+    QVector<VPTR> m_shape_vector;
+    QVector<VPTR> m_poetic_vector;
+    QVector<VPTR> m_music_vector;
+    QVector<VPTR> m_dance_vector;
 
-    QHash<QString, VIRTADDR> m_material_templates;
+    QHash<QString, VPTR> m_material_templates;
 
-    QVector<VIRTADDR> m_all_syndromes;
+    QVector<VPTR> m_all_syndromes;
 
     QHash<ITEM_TYPE,EquipWarn*> m_equip_warning_counts;
     QHash<QPair<QString,QString>, pref_stat*> m_pref_counts;
@@ -338,7 +338,7 @@ private:
     QString m_fortress_name;
     QString m_fortress_name_translated;
 
-    VIRTADDR m_squad_vector;
+    VPTR m_squad_vector;
     QList<Squad*> m_squads;
 
     void load_hist_figures();

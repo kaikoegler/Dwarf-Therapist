@@ -48,7 +48,7 @@ UnitWound::UnitWound()
     , m_is_critical(false)
 {
 }
-UnitWound::UnitWound(DFInstance *df, VIRTADDR base_addr, FlagArray caste_flags, UnitHealth *uh)
+UnitWound::UnitWound(DFInstance *df, VPTR base_addr, FlagArray caste_flags, UnitHealth *uh)
     : m_df(df)
     , m_addr(base_addr)
     , m_unitHealth(uh)
@@ -112,7 +112,7 @@ void UnitWound::read_wound(){
     MemoryLayout *mem = m_df->memory_layout();
 
     QList<short> desc_index;
-    quint32 general_flags = m_df->read_addr(m_addr + mem->wound_offset("general_flags"));
+    quint32 general_flags = m_df->read_word(m_addr + mem->wound_offset("general_flags"));
 
     if(general_flags & 1)
         m_severed = true;
@@ -129,18 +129,18 @@ void UnitWound::read_wound(){
 
     m_is_critical = m_severed || m_mortal;
 
-    QVector<VIRTADDR> addr_wounded_parts = m_df->enumerate_vector(m_addr+mem->wound_offset("parts"));
+    QVector<VPTR> addr_wounded_parts = m_df->enumerate_vector(m_addr+mem->wound_offset("parts"));
 
-    foreach(VIRTADDR wounded_part, addr_wounded_parts){
+    foreach(VPTR wounded_part, addr_wounded_parts){
         wounded_part_details wpd;
 
         wpd.body_part_id = m_df->read_short(wounded_part + mem->wound_offset("id"));
         short layer_id = m_df->read_short(wounded_part + mem->wound_offset("layer"));
 
-        wpd.wound_flags1 = m_df->read_addr(wounded_part + mem->wound_offset("flags1"));
-        wpd.wound_flags2 = m_df->read_addr(wounded_part + mem->wound_offset("flags2"));
+        wpd.wound_flags1 = m_df->read_word(wounded_part + mem->wound_offset("flags1"));
+        wpd.wound_flags2 = m_df->read_word(wounded_part + mem->wound_offset("flags2"));
 
-        VIRTADDR addr_effect = wounded_part + mem->wound_offset("effects_vector");
+        VPTR addr_effect = wounded_part + mem->wound_offset("effects_vector");
         wpd.effect_types = m_df->enumerate_vector_short(addr_effect);
 
         wpd.cur_pen = m_df->read_short(wounded_part + mem->wound_offset("cur_pen"));

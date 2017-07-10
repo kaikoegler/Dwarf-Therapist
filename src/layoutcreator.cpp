@@ -80,7 +80,7 @@ bool LayoutCreator::write_file()
 
 void LayoutCreator::report_global_address(const QString& name, const quint32& addr)
 {
-    VIRTADDR corrected_addr = addr - m_df->memory_layout()->get_base_addr();
+    VPTR corrected_addr = addr - m_df->memory_layout()->get_base_addr();
 
     if(name == "Dwarf Race" && m_dwarf_race_index == 0)
     {

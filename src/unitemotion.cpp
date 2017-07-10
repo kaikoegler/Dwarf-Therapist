@@ -52,7 +52,7 @@ UnitEmotion::UnitEmotion(QObject *parent)
 {
 }
 
-UnitEmotion::UnitEmotion(VIRTADDR addr, DFInstance *df, QObject *parent)
+UnitEmotion::UnitEmotion(VPTR addr, DFInstance *df, QObject *parent)
     : QObject(parent)
     , m_address(addr)
     , m_desc("??")
@@ -107,7 +107,7 @@ UnitEmotion::UnitEmotion(VIRTADDR addr, DFInstance *df, QObject *parent)
                     }else if(key=="[building]"){
                         replace = gdr->get_building_name(static_cast<BUILDING_TYPE>(m_sub_id),m_optional_level);
                     }else if(key=="[syndrome]"){
-                        VIRTADDR syn_addr = df->get_syndrome(m_sub_id);
+                        VPTR syn_addr = df->get_syndrome(m_sub_id);
                         if(syn_addr){
                             replace = df->read_string(syn_addr);
                             m_compare_id = replace;

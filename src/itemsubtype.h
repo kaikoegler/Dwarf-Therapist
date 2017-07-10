@@ -33,7 +33,7 @@ THE SOFTWARE.
 class ItemSubtype : public QObject {
     Q_OBJECT
 public:
-    ItemSubtype(ITEM_TYPE itype, DFInstance *df, VIRTADDR address, QObject *parent = 0)
+    ItemSubtype(ITEM_TYPE itype, DFInstance *df, VPTR address, QObject *parent = 0)
         : QObject(parent)
         , m_address(address)
         , m_df(df)
@@ -44,7 +44,7 @@ public:
         set_base_offsets();
     }
 
-    ItemSubtype(DFInstance *df, VIRTADDR address, QObject *parent = 0)
+    ItemSubtype(DFInstance *df, VPTR address, QObject *parent = 0)
         : QObject(parent)
         , m_address(address)
         , m_df(df)
@@ -60,7 +60,7 @@ public:
         m_mem = 0;
     }
 
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
     QString name() const {return m_name;}
     QString name_plural() const {return m_name_plural;}
     short subType() const {return m_subType;}
@@ -70,7 +70,7 @@ public:
     void name_plural(QString val){m_name_plural = val;}
 
 protected:
-    VIRTADDR m_address;
+    VPTR m_address;
     QString m_name;
     QString m_name_plural;
     DFInstance * m_df;

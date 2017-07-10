@@ -34,7 +34,7 @@ public:
 
     ItemUniform(const Item &baseItem);
 
-    ItemUniform(DFInstance *df, VIRTADDR item_addr);
+    ItemUniform(DFInstance *df, VPTR item_addr);
 
     ItemUniform(DFInstance *df, ItemDefUniform *u, QObject *parent);
 

@@ -34,7 +34,7 @@ class UnitEmotion : public QObject
     Q_OBJECT
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     EMOTION_TYPE m_eType;
     int m_thought_id;
     int m_sub_id;
@@ -53,7 +53,7 @@ private:
 
 public:
     UnitEmotion(QObject *parent = 0);
-    UnitEmotion(VIRTADDR addr, DFInstance *df, QObject *parent = 0);
+    UnitEmotion(VPTR addr, DFInstance *df, QObject *parent = 0);
 
     EMOTION_TYPE get_emotion_type() const {return m_eType;}
     int get_thought_id() const {return m_thought_id;}

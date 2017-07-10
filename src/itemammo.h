@@ -31,7 +31,7 @@ class ItemAmmo : public Item {
 public:
 
     ItemAmmo(const Item &baseItem);
-    ItemAmmo(DFInstance *df, VIRTADDR item_addr);
+    ItemAmmo(DFInstance *df, VPTR item_addr);
 
     ~ItemAmmo();
 

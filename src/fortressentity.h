@@ -31,9 +31,9 @@ class MemoryLayout;
 class FortressEntity : public QObject {
     Q_OBJECT
 public:
-    FortressEntity(DFInstance *df, VIRTADDR address, QObject *parent = 0);
+    FortressEntity(DFInstance *df, VPTR address, QObject *parent = 0);
     virtual ~FortressEntity();
-    static FortressEntity* get_entity(DFInstance *df, const VIRTADDR &address);
+    static FortressEntity* get_entity(DFInstance *df, const VPTR &address);
 
     typedef enum{
         MULTIPLE=0,
@@ -55,7 +55,7 @@ public:
     static NOBLE_COLORS get_color_type(const QString &raw);
 
     void load_data();
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
     QString get_noble_positions(int hist_id, bool is_male);
     QColor get_noble_color(int hist_id);
 
@@ -82,7 +82,7 @@ private:
 
     static QHash<NOBLE_COLORS, QColor> m_noble_colors;
 
-    VIRTADDR m_address;
+    VPTR m_address;
     DFInstance * m_df;
     MemoryLayout * m_mem;
     int m_id;

@@ -58,7 +58,7 @@ Item::Item(const Item &i)
     m_maker_race = i.m_maker_race;
 }
 
-Item::Item(DFInstance *df, VIRTADDR item_addr, QObject *parent)
+Item::Item(DFInstance *df, VPTR item_addr, QObject *parent)
     : QObject(parent)
     , m_df(df)
     , m_addr(item_addr)
@@ -114,7 +114,7 @@ const QList<MATERIAL_FLAGS> Item::init_mat_cats(){
 
 void Item::read_data(){
     if(m_addr){
-        VIRTADDR item_vtable = m_df->read_addr(m_addr);
+        VPTR item_vtable = m_df->read_addr(m_addr);
 
         m_iType = static_cast<ITEM_TYPE>(m_df->read_int(m_df->read_addr(item_vtable) + m_df->VM_TYPE_OFFSET()));
 
@@ -128,9 +128,9 @@ void Item::read_data(){
 
         init_defaults();
 
-        QVector<VIRTADDR> gen_refs = m_df->enumerate_vector(m_addr+m_df->memory_layout()->item_offset("general_refs"));
-        foreach(VIRTADDR ref, gen_refs){
-            VIRTADDR gen_ref_vtable = m_df->read_addr(ref);
+        QVector<VPTR> gen_refs = m_df->enumerate_vector(m_addr+m_df->memory_layout()->item_offset("general_refs"));
+        foreach(VPTR ref, gen_refs){
+            VPTR gen_ref_vtable = m_df->read_addr(ref);
             int ref_type = m_df->read_int(m_df->read_addr(gen_ref_vtable+m_df->memory_layout()->general_ref_offset("ref_type")) + m_df->VM_TYPE_OFFSET());
             if(ref_type == 0 || ref_type == 1){
                 LOGD << "reading type:" << ref_type << "(artifact name)";
@@ -142,7 +142,7 @@ void Item::read_data(){
             }else if(ref_type == 10 && m_iType == QUIVER){ //type of container item, could be expanded to show food and drink
                 LOGD << "reading type:" << ref_type << "(container)";
                 int item_id = m_df->read_int(ref+m_df->memory_layout()->general_ref_offset("item_id"));
-                VIRTADDR ammo_addr = m_df->get_item_address(AMMO,item_id);
+                VPTR ammo_addr = m_df->get_item_address(AMMO,item_id);
                 if(ammo_addr > 0){
                     ItemAmmo *ia = new ItemAmmo(m_df,ammo_addr);
                     bool appended = false;

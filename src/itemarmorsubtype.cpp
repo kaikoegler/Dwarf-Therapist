@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "memorylayout.h"
 #include "truncatingfilelogger.h"
 
-ItemArmorSubtype::ItemArmorSubtype(const ITEM_TYPE itype, DFInstance *df, const VIRTADDR address, QObject *parent)
+ItemArmorSubtype::ItemArmorSubtype(const ITEM_TYPE itype, DFInstance *df, const VPTR address, QObject *parent)
     : ItemSubtype(itype,df,address,parent)
     , m_offset_props(-1)
     , m_offset_level(-1)

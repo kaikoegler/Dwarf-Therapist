@@ -36,11 +36,11 @@ class QTreeWidgetItem;
 class Squad : public QObject {
     Q_OBJECT
 public:
-    Squad(int id, DFInstance *df, VIRTADDR address, QObject *parent = 0);
+    Squad(int id, DFInstance *df, VPTR address, QObject *parent = 0);
     virtual ~Squad();
 
     //! Return the memory address (in hex) of this creature in the remote DF process
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
     int id() {return m_id;}
     QString name() {return m_name;}
     int assigned_count();
@@ -68,7 +68,7 @@ public:
     } SQ_ORDER_TYPE;
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     int m_id;
     QString m_name;
     DFInstance * m_df;
@@ -76,7 +76,7 @@ private:
     //! position, histfig_id
     QMap<int,int> m_members;
     QHash<int,int> m_orders; //histfig_id, order_id
-    QVector<VIRTADDR> m_members_addr;
+    QVector<VPTR> m_members_addr;
     QHash<int,Uniform*> m_uniforms;
     bool m_inactive;
     QString m_pending_name;
@@ -89,10 +89,10 @@ private:
     void read_name();
     void read_members();
     void read_orders();
-    void read_equip_category(VIRTADDR vec_addr, ITEM_TYPE itype, Uniform *u);
+    void read_equip_category(VPTR vec_addr, ITEM_TYPE itype, Uniform *u);
     int find_position(int hist_id);
 
-    void read_order(VIRTADDR addr, int histfig_id);
+    void read_order(VPTR addr, int histfig_id);
 
 signals:
     void squad_leader_changed();

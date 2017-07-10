@@ -38,7 +38,7 @@ class Item : public QObject {
     Q_OBJECT
 public:
     Item(const Item &i);
-    Item(DFInstance *df, VIRTADDR item_addr, QObject *parent = 0);
+    Item(DFInstance *df, VPTR item_addr, QObject *parent = 0);
     Item(ITEM_TYPE itype,QString name, QObject *parent = 0);
     virtual ~Item();
 
@@ -337,7 +337,7 @@ public:
     static const QColor color_wear() {return QColor(240,116,0,255);}
     static const QColor get_color(ITEM_STATE i_status){return m_state_colors.value(i_status,color_clothed());}
 
-    VIRTADDR address() {return m_addr;}
+    VPTR address() {return m_addr;}
 
     int id(){return m_id;}
 
@@ -374,7 +374,7 @@ public:
 
 protected:
     DFInstance *m_df;
-    VIRTADDR m_addr;
+    VPTR m_addr;
     ITEM_TYPE m_iType;
     short m_wear;
     short m_mat_type;

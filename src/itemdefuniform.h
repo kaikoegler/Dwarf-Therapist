@@ -32,7 +32,7 @@ THE SOFTWARE.
 class ItemDefUniform : public QObject {
     Q_OBJECT
 public:
-    ItemDefUniform(DFInstance *df, VIRTADDR address, QObject *parent = 0)
+    ItemDefUniform(DFInstance *df, VPTR address, QObject *parent = 0)
         : QObject(parent)
         , m_address(address)
         , m_df(df)
@@ -166,7 +166,7 @@ public:
         return m.value(mat_class, "???");
     }
 
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
     ITEM_TYPE item_type() const {return m_iType;}
     void item_type(ITEM_TYPE newType){m_iType = newType;}
     short item_subtype() {return m_subType;}
@@ -182,7 +182,7 @@ public:
     void add_to_stack(int num){m_stack_size+=num;}
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     DFInstance * m_df;
     MemoryLayout * m_mem;
     ITEM_TYPE m_iType;
@@ -201,7 +201,7 @@ private:
         if(m_address > 0){
             m_id = m_df->read_int(m_address);
 
-            VIRTADDR uniform_addr = m_address + m_df->memory_layout()->squad_offset("uniform_item_filter"); //filter offset start
+            VPTR uniform_addr = m_address + m_df->memory_layout()->squad_offset("uniform_item_filter"); //filter offset start
             m_iType = static_cast<ITEM_TYPE>(m_df->read_short(uniform_addr));
             m_subType = m_df->read_short(uniform_addr + m_df->memory_layout()->item_filter_offset("item_subtype"));
             m_matType = m_df->read_short(uniform_addr + m_df->memory_layout()->item_filter_offset("mat_type"));
@@ -209,10 +209,10 @@ private:
             read_mat_class(uniform_addr);
             //individual choice is stored in a bit array, first bit (any) second (melee) third (ranged)
             //currently we only care if one is set or not. it may be ok just to check for a weapon type as well
-            m_indv_choice = m_df->read_addr(m_address + m_df->memory_layout()->squad_offset("uniform_indiv_choice")) & 0x7;
+            m_indv_choice = m_df->read_byte(m_address + m_df->memory_layout()->squad_offset("uniform_indiv_choice")) & 0x7;
         }
     }
-    void read_mat_class(VIRTADDR uniform_addr){
+    void read_mat_class(VPTR uniform_addr){
         /*
          * mat_class here is actually referencing different vectors of materials in the historical_entity.resources
          * for now, we cheat this by mapping the material types to matching material flags and compare with those

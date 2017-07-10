@@ -38,13 +38,13 @@ public:
 
     static Languages* get_languages(DFInstance *df);
 
-    QString language_word(VIRTADDR address);
-    QString english_word(VIRTADDR address);
+    QString language_word(VPTR address);
+    QString english_word(VPTR address);
 
     void load_data();
 
 private:
-    VIRTADDR m_address;
+    VPTR m_address;
     QVector<Word *> m_language;
     QHash<int, QStringList> m_words;
 

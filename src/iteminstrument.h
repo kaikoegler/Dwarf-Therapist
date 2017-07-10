@@ -31,7 +31,7 @@ class ItemInstrument : public Item {
 public:
 
     ItemInstrument(const Item &baseItem);
-    ItemInstrument(DFInstance *df, VIRTADDR item_addr);
+    ItemInstrument(DFInstance *df, VPTR item_addr);
 
     virtual ~ItemInstrument();
 

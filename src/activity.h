@@ -33,7 +33,7 @@ class ActivityEvent;
 class Activity : public QObject {
     Q_OBJECT
 public:
-    Activity(DFInstance *df, VIRTADDR addr, QObject *parent = 0);
+    Activity(DFInstance *df, VPTR addr, QObject *parent = 0);
     virtual ~Activity();
 
     typedef enum{
@@ -52,7 +52,7 @@ public:
         ACT_PLAY = 12
     } ACT_CATEGORY;
 
-    VIRTADDR address() {return m_address;}
+    VPTR address() {return m_address;}
     ACT_CATEGORY activity_type() {return m_type;}
     QPair<int, QString> find_activity(int histfig_id);
     int activity_count() {return m_histfig_actions.count();}
@@ -60,7 +60,7 @@ public:
 private:
     DFInstance * m_df;
     MemoryLayout * m_mem;
-    VIRTADDR m_address;
+    VPTR m_address;
 
     int m_id;
     ACT_CATEGORY m_type;
