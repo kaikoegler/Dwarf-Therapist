@@ -5,7 +5,9 @@ matrix:
     include:
         - os: osx
           install:
-            - ./.travis/install_osx.sh
+              - ./.travis/install_osx.sh
+          script:
+              - cmake -GNinja -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt/* && ninja -k 0
     allow_failures:
         - os: osx
 dist: trusty
