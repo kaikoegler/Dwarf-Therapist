@@ -84,14 +84,14 @@ DFInstance::DFInstance(QObject* parent)
     , m_cur_year_tick(0)
     , m_cur_time(0)
     , m_status(DFS_DISCONNECTED)
+    , m_alloc_start(nullptr)
+    , m_alloc_len(0)
+    , m_alloc_capacity(0)
     , m_languages(0x0)
     , m_fortress(0x0)
     , m_fortress_name(tr("Embarking"))
     , m_fortress_name_translated("")
     , m_squad_vector(0)
-    , m_alloc_start(nullptr)
-    , m_alloc_len(0)
-    , m_alloc_capacity(0)
 {
     // let subclasses start the heartbeat timer, since we don't want to be
     // checking before we're connected
@@ -634,7 +634,7 @@ void DFInstance::load_main_vectors(){
     int i = 0;
     for(i = 0; i < 256; i++){
         VPTR mat_addr = read_addr(addr);
-        if(mat_addr > 0){
+        if(mat_addr){
             Material* m = Material::get_material(this, mat_addr, i, false, this);
             m_base_materials.append(m);
         }

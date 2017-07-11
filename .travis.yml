@@ -25,9 +25,9 @@ addons:
 
 env:
     global:
-        - CXXFLAGS="-Wall -Wextra -Werror"
+        - CXXFLAGS="-Werror=all -Wextra"
 script:
-    - cmake -GNinja . && ninja
+    - cmake -GNinja . && ninja -k 0
 
 notifications:
     irc:

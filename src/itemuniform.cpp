@@ -75,7 +75,7 @@ short ItemUniform::item_subtype() const {return m_item_def->subType();}
 ItemSubtype * ItemUniform::get_subType() {return m_item_def;}
 
 void ItemUniform::read_def(){
-    if(m_addr > 0){
+    if(m_addr){
         m_item_def = new ItemGenericSubtype(m_iType,m_df,m_df->read_addr(m_addr+m_df->memory_layout()->item_offset("item_def")),this);
     }else{
         if(m_uniform_def->mat_flag() != MAT_NONE){
