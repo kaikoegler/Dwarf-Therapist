@@ -2,8 +2,7 @@ matrix:
     include:
         - os: osx
           before_install:
-            - brew update
-            - brew outdated qt || brew upgrade qt
+            - brew update && { brew outdated qt || brew upgrade qt }
     allow_failures:
         - os: osx
 dist: trusty
@@ -19,13 +18,12 @@ addons:
     apt:
         packages:
             - cmake
-            - ninja
+            - ninja-build
             - qtbase5-dev
             - qtbase5-dev-tools
             - qtdeclarative5-dev
 script:
-    - cmake -GNinja .
-    - ninja
+    - cmake -GNinja . && ninja
 notifications:
     irc:
         on_success: change
