@@ -1,4 +1,7 @@
 #include "itemarmor.h"
+
+#include "memorylayout.h"
+#include "dfinstance.h"
 #include "races.h"
 
 void ItemArmor::read_def() {

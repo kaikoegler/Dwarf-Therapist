@@ -1,4 +1,35 @@
+#include "dfinstance.h"
 #include "itemsubtype.h"
+#include "memorylayout.h"
+
+ItemSubtype::ItemSubtype(ITEM_TYPE itype, DFInstance *df, VPTR address, QObject *parent)
+    : QObject(parent)
+    , m_address(address)
+    , m_df(df)
+    , m_mem(df->memory_layout())
+    , m_iType(itype)
+    , m_subType(-1)
+{
+    set_base_offsets();
+}
+
+ItemSubtype::ItemSubtype(DFInstance *df, VPTR address, QObject *parent)
+    : QObject(parent)
+    , m_address(address)
+    , m_df(df)
+    , m_mem(df->memory_layout())
+    , m_iType(NONE)
+    , m_subType(-1)
+{
+    set_base_offsets();
+}
+
+void ItemSubtype::set_base_offsets()
+{
+    m_offset_adj = m_mem->item_subtype_offset("adjective");
+    m_offset_mat = -1;
+    m_offset_preplural = -1;
+}
 
 void ItemSubtype::read_data() {
     if(m_address){

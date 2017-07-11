@@ -26,39 +26,17 @@ THE SOFTWARE.
 #include <QObject>
 #include "utils.h"
 #include "global_enums.h"
-#include "dfinstance.h"
-#include "memorylayout.h"
 #include "flagarray.h"
+
+class DFInstance;
+class MemoryLayout;
 
 class ItemSubtype : public QObject {
     Q_OBJECT
 public:
-    ItemSubtype(ITEM_TYPE itype, DFInstance *df, VPTR address, QObject *parent = 0)
-        : QObject(parent)
-        , m_address(address)
-        , m_df(df)
-        , m_mem(df->memory_layout())
-        , m_iType(itype)
-        , m_subType(-1)
-    {
-        set_base_offsets();
-    }
+    ItemSubtype(ITEM_TYPE itype, DFInstance *df, VPTR address, QObject *parent = 0);
 
-    ItemSubtype(DFInstance *df, VPTR address, QObject *parent = 0)
-        : QObject(parent)
-        , m_address(address)
-        , m_df(df)
-        , m_mem(df->memory_layout())
-        , m_iType(NONE)
-        , m_subType(-1)
-    {
-        set_base_offsets();
-    }
-
-    virtual ~ItemSubtype(){
-        m_df = 0;
-        m_mem = 0;
-    }
+    ItemSubtype(DFInstance *df, VPTR address, QObject *parent = 0);
 
     VPTR address() {return m_address;}
     QString name() const {return m_name;}
@@ -85,11 +63,7 @@ protected:
 
     virtual void read_data();
 
-    virtual void set_base_offsets(){
-        m_offset_adj = m_mem->item_subtype_offset("adjective");
-        m_offset_mat = -1;
-        m_offset_preplural = -1;
-    }
+    virtual void set_base_offsets();
 };
 
 #endif // ITEMSUBTYPE_H

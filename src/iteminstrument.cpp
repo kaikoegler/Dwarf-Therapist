@@ -1,6 +1,7 @@
 #include "iteminstrument.h"
 #include "itemgenericsubtype.h"
-
+#include "dfinstance.h"
+#include "memorylayout.h"
 
 ItemInstrument::ItemInstrument(const Item &baseItem)
     : Item(baseItem)

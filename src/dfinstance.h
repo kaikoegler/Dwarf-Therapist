@@ -182,7 +182,7 @@ public:
 
     void refresh_data();
 
-    QList<Squad*> load_squads(bool show_progress);
+    QList<Squad*> load_squads();
     Squad * get_squad(int id);
 
     int get_labor_count(int id) const {return m_enabled_labor_count.value(id,0);}

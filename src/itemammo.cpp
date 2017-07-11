@@ -23,6 +23,8 @@ THE SOFTWARE.
 
 #include "itemammo.h"
 #include "itemgenericsubtype.h"
+#include "dfinstance.h"
+#include "memorylayout.h"
 
 ItemAmmo::ItemAmmo(const Item &baseItem)
     : Item(baseItem)

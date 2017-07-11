@@ -748,7 +748,7 @@ void DFInstance::refresh_data(){
     load_occupations();
     load_activities();
     load_fortress();
-    load_squads(true);
+    load_squads();
     load_items();
 }
 
@@ -810,7 +810,7 @@ void DFInstance::load_fortress_name(){
     }
 }
 
-QList<Squad *> DFInstance::load_squads(bool show_progress) {
+QList<Squad *> DFInstance::load_squads() {
     LOGD << "loading squads";
     QList<Squad*> squads;
     if (m_status != DFS_GAME_LOADED) {
@@ -819,22 +819,20 @@ QList<Squad *> DFInstance::load_squads(bool show_progress) {
         return squads;
     }
 
-    if(show_progress){
-        LOGD << "loading squads from " << hexify(m_squad_vector);
-        emit progress_message(tr("Loading Squads"));
-    }
+    VPTR squad_vector = m_layout->address("squad_vector");
+
+    emit progress_message(tr("Loading Squads"));
 
     attach();
 
-    QVector<VPTR> squads_addr = enumerate_vector(m_squad_vector);
+    QVector<VPTR> squads_addr = enumerate_vector(squad_vector);
     LOGI << "FOUND" << squads_addr.size() << "squads";
 
     qDeleteAll(m_squads);
     m_squads.clear();
 
     if (!squads_addr.empty()) {
-        if(show_progress)
-            emit progress_range(0, squads_addr.size()-1);
+        emit progress_range(0, squads_addr.size()-1);
 
         int squad_count = 0;
         foreach(VPTR squad_addr, squads_addr) {
@@ -849,8 +847,7 @@ QList<Squad *> DFInstance::load_squads(bool show_progress) {
                 }
             }
 
-            if(show_progress)
-                emit progress_value(squad_count++);
+            emit progress_value(squad_count++);
         }
     }
 

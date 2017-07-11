@@ -1,4 +1,6 @@
 #include "itemtool.h"
+#include "dfinstance.h"
+#include "memorylayout.h"
 #include "itemtoolsubtype.h"
 
 ItemTool::ItemTool(const Item &baseItem)

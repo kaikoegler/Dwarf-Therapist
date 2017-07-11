@@ -23,12 +23,13 @@ THE SOFTWARE.
 
 #include "weaponcolumn.h"
 #include "columntypes.h"
-#include "dwarfmodel.h"
-#include "dwarf.h"
-#include "dwarftherapist.h"
-#include "itemweaponsubtype.h"
-#include "gamedatareader.h"
 #include "dfinstance.h"
+#include "dwarf.h"
+#include "dwarfmodel.h"
+#include "dwarftherapist.h"
+#include "gamedatareader.h"
+#include "itemweaponsubtype.h"
+#include "memorylayout.h"
 
 WeaponColumn::WeaponColumn(QSettings &s, ViewColumnSet *set, QObject *parent)
     : ViewColumn(s, set, parent)

@@ -33,9 +33,6 @@ ItemWeaponSubtype::ItemWeaponSubtype(DFInstance *df, VPTR address, QObject *pare
     read_data();
 }
 
-ItemWeaponSubtype::~ItemWeaponSubtype() {
-}
-
 void ItemWeaponSubtype::read_data() {
     ItemSubtype::read_data();
     //set the group name as the simple plural name (no adjective or preplural)

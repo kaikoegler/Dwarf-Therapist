@@ -34,12 +34,14 @@ THE SOFTWARE.
 #include "itemweaponsubtype.h"
 #include "dwarf.h"
 #include "mainwindow.h"
+
+#include <QErrorMessage>
+#include <QHeaderView>
+#include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
-#include <QInputDialog>
-#include <QHeaderView>
+#include <QSettings>
 #include <QTime>
-#include <QErrorMessage>
 #include <QToolBar>
 #include <QToolButton>
 

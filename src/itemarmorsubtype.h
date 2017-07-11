@@ -30,7 +30,6 @@ class ItemArmorSubtype : public ItemSubtype {
     Q_OBJECT
 public:
     ItemArmorSubtype(const ITEM_TYPE itype, DFInstance *df, const VPTR address, QObject *parent = 0);
-    ~ItemArmorSubtype();
 
     typedef enum {
         ARMOR_METAL=2,

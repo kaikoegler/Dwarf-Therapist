@@ -1,5 +1,6 @@
-#include <QMessageBox>
 #include <QMenu>
+#include <QMessageBox>
+#include <QSettings>
 
 #if QT_VERSION < 0x050000
 # include <QScriptEngine>

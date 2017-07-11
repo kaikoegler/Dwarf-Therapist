@@ -35,11 +35,6 @@ ItemArmorSubtype::ItemArmorSubtype(const ITEM_TYPE itype, DFInstance *df, const 
     read_data();
 }
 
-ItemArmorSubtype::~ItemArmorSubtype(){
-    m_df = 0;
-    m_mem = 0;
-}
-
 QString ItemArmorSubtype::get_layer_name(){
     switch(m_layer){
     case 0:
