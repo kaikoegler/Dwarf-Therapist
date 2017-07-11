@@ -1,3 +1,6 @@
+git:
+    depth: 1
+
 matrix:
     include:
         - os: osx
@@ -11,9 +14,6 @@ language: cpp
 compiler:
     - clang
     - gcc
-env:
-    global:
-        - CXXFLAGS="-Wall -Wextra -Werror"
 addons:
     apt:
         packages:
@@ -22,8 +22,13 @@ addons:
             - qtbase5-dev
             - qtbase5-dev-tools
             - qtdeclarative5-dev
+
+env:
+    global:
+        - CXXFLAGS="-Wall -Wextra -Werror"
 script:
     - cmake -GNinja . && ninja
+
 notifications:
     irc:
         on_success: change

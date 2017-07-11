@@ -898,7 +898,7 @@ QVector<VPTR> DFInstance::get_creatures(bool report_progress){
         //there are active units, but are they ours?
         int civ_offset = m_layout->dwarf_offset("civ");
         foreach(VPTR entry, entries){
-            if(read_word(entry + civ_offset)==m_dwarf_civ_id){
+            if(read_int(entry + civ_offset)==m_dwarf_civ_id){
                 if(report_progress){
                     LOGI << "using active units";
                 }
