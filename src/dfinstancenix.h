@@ -20,7 +20,6 @@ protected:
     QString calculate_checksum();
 
     VPTR get_string(const QString &str);
-    virtual VPTR alloc_chunk(size_t size) = 0;
 
     QString m_loc_of_dfexe;
 

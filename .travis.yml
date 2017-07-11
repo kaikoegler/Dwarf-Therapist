@@ -4,8 +4,8 @@ git:
 matrix:
     include:
         - os: osx
-          before_install:
-            - brew update && { brew outdated qt || brew upgrade qt; }
+          install:
+            - ./.travis/install_osx.sh
     allow_failures:
         - os: osx
 dist: trusty

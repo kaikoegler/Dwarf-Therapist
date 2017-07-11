@@ -89,6 +89,9 @@ DFInstance::DFInstance(QObject* parent)
     , m_fortress_name(tr("Embarking"))
     , m_fortress_name_translated("")
     , m_squad_vector(0)
+    , m_alloc_start(nullptr)
+    , m_alloc_len(0)
+    , m_alloc_capacity(0)
 {
     // let subclasses start the heartbeat timer, since we don't want to be
     // checking before we're connected
@@ -1506,5 +1509,39 @@ PID DFInstance::select_pid(QSet<PID> pids) {
     if (!ok)
         return 0;
 
+    return rv;
+}
+
+VPTR DFInstance::alloc_chunk(size_t size) {
+    if (size > 1048576) {
+        return nullptr;
+    }
+
+    if (size > m_alloc_capacity - m_alloc_len) {
+        size_t asize = ((size*2 + 4095)/4096)*4096;
+        if (m_alloc_start) {
+            // grow exponentially until 1 MB, then linearly
+            asize = m_alloc_capacity >= 1048576 ? m_alloc_capacity + 1048576 : m_alloc_capacity * 2;
+
+            if (!mremap(asize)) {
+                asize = 1048576;
+            }
+        }
+
+        if (!m_alloc_start) {
+            mmap(asize);
+            m_alloc_len = 0;
+        }
+
+        if (!m_alloc_start) {
+            m_alloc_capacity = 0;
+            return nullptr;
+        }
+
+        m_alloc_capacity = asize;
+    }
+
+    VPTR rv = m_alloc_start + m_alloc_len;
+    m_alloc_len += size;
     return rv;
 }

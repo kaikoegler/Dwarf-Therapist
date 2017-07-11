@@ -178,40 +178,12 @@ void DFInstanceOSX::find_running_copy() {
     m_alloc_end = 0;
 }
 
-VPTR DFInstanceOSX::alloc_chunk(size_t size) {
-    if (size > 1048576) {
-        return 0;
-    }
+bool DFInstanceOSX::mmap(size_t size) {
+    return vm_allocate(m_task, reinterpret_cast<vm_address_t *>(&m_alloc_start), size, VM_FLAGS_ANYWHERE) == KERN_SUCCESS;
+}
 
-    if ((m_alloc_end - m_alloc_start) < size) {
-        int apages = (size * 2 + 4095)/4096;
-        int asize = apages * 4096;
-
-        vm_address_t new_block;
-
-        kern_return_t err;
-
-        if (m_alloc_start == 0) {
-            err = vm_allocate( m_task, &new_block, asize, VM_FLAGS_ANYWHERE );
-        } else {
-            new_block = m_alloc_end;
-            err = vm_allocate( m_task, &new_block, asize, VM_FLAGS_FIXED );
-        }
-
-        if (err != KERN_SUCCESS) {
-            return 0;
-        }
-
-        if (new_block != m_alloc_end) {
-            m_alloc_start = new_block;
-        }
-        m_alloc_end = new_block + asize;
-    }
-
-    VPTR rv = m_alloc_start;
-    m_alloc_start += size;
-
-    return rv;
+bool DFInstanceOSX::mremap(size_t new_size) {
+    return vm_allocate(m_task, m_alloc_start, new_size, VM_FLAGS_FIXED) == KERN_SUCCESS;
 }
 
 bool DFInstanceOSX::authorize() {

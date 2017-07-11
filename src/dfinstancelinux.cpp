@@ -42,9 +42,6 @@ struct iovec {
 
 DFInstanceLinux::DFInstanceLinux(QObject* parent)
     : DFInstanceNix(parent)
-    , m_alloc_start(0)
-    , m_alloc_capacity(0)
-    , m_alloc_len(0)
     , m_warned_pvm(false)
 {
 }
@@ -291,29 +288,11 @@ static const quint8 syscall_code[] = {
 
 static_assert(sizeof(syscall_code) <= sizeof(long), "syscall code must fit in long");
 
-static const long df_exe_base = 0x00400000;
-
 long DFInstanceLinux::remote_syscall(int syscall_id,
      long arg0, long arg1, long arg2,
      long arg3, long arg4, long arg5)
 {
     attach();
-
-    // get the old value of some executable RAM
-    long old_code_word = ptrace(PTRACE_PEEKTEXT, m_pid, df_exe_base, 0);
-    errno = 0;
-    if (old_code_word == -1 && errno != 0) {
-        LOGE << "could not retrieve old RAM for syscall";
-        return -1;
-    }
-
-    // insert new text
-    long syscall_code_word;
-    memcpy(&syscall_code_word, syscall_code, sizeof(syscall_code));
-    if (ptrace(PTRACE_POKETEXT, m_pid, df_exe_base, syscall_code_word) == -1) {
-        LOGE << "could not insert syscall .text";
-        return -1;
-    }
 
     /* Save the current value of the main thread registers */
     struct user_regs_struct saved_regs, work_regs;
@@ -325,7 +304,8 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
 
     /* Prepare the registers */
     work_regs = saved_regs;
-    work_regs.rip = df_exe_base;
+#ifdef __x86_64__
+    long ip = work_regs.rip;
     work_regs.rax = syscall_id;
     work_regs.rdi = arg0;
     work_regs.rsi = arg1;
@@ -333,6 +313,32 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
     work_regs.r10 = arg3;
     work_regs.r8 = arg4;
     work_regs.r9 = arg5;
+#else
+    long ip = work_regs.eip;
+    work_regs.eax = syscall_id;
+    work_regs.ebx = arg0;
+    work_regs.ecx = arg1;
+    work_regs.edx = arg2;
+    work_regs.esi = arg3;
+    work_regs.edi = arg4;
+    work_regs.ebp = arg5;
+#endif
+
+    // get the old value of some executable RAM
+    long old_code_word = ptrace(PTRACE_PEEKTEXT, m_pid, ip, 0);
+    errno = 0;
+    if (old_code_word == -1 && errno != 0) {
+        LOGE << "could not retrieve old RAM for syscall";
+        return -1;
+    }
+
+    // insert new text
+    long syscall_code_word;
+    memcpy(&syscall_code_word, syscall_code, sizeof(syscall_code));
+    if (ptrace(PTRACE_POKETEXT, m_pid, ip, syscall_code_word) == -1) {
+        LOGE << "could not insert syscall .text";
+        return -1;
+    }
 
     /* Upload the registers. Note that after this point,
        if this process crashes before the context is
@@ -355,14 +361,14 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
         return -1;
     }
 
+    // restore the text
+    if (ptrace(PTRACE_POKETEXT, m_pid, ip, old_code_word) == -1) {
+        LOGE << "Could not restore the injection area:" << strerror(errno);
+    }
+
     /* Restore the registers. */
     if (ptrace(PTRACE_SETREGS, m_pid, 0, &saved_regs) == -1) {
         LOGE << "Could not restore register information:" << strerror(errno);
-    }
-
-    // restore the text
-    if (ptrace(PTRACE_POKETEXT, m_pid, df_exe_base, old_code_word) == -1) {
-        LOGE << "Could not restore the injection area:" << strerror(errno);
     }
 
     detach();
@@ -370,49 +376,25 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
     return work_regs.rax;
 }
 
-/* Memory allocation for strings using remote mmap. */
+bool DFInstanceLinux::mmap(size_t size) {
+    long sc_rv = remote_syscall(SYS_mmap, 0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-VPTR DFInstanceLinux::alloc_chunk(size_t size) {
-    if (size > 1048576) {
-        return nullptr;
-    }
-    if (size > m_alloc_capacity - m_alloc_len) {
-        size_t asize;
-        long sc_rv;
-        if (m_alloc_start) {
-            // grow exponentially until 1 MB, then linearly
-            asize = m_alloc_capacity >= 1048576 ? m_alloc_capacity + 1048576 : m_alloc_capacity * 2;
-
-            sc_rv = remote_syscall(SYS_mremap, reinterpret_cast<long>(m_alloc_start), m_alloc_capacity, asize, 0, 0, 0);
-
-            if (sc_rv < 0 && sc_rv > -4095) {
-                LOGE << "Injected mremap failed with error: " << -sc_rv;
-                m_alloc_start = nullptr;
-            } else {
-                m_alloc_start = reinterpret_cast<VPTR>(sc_rv);
-            }
-        }
-
-        if (!m_alloc_start) {
-            asize = ((size*2 + 4095)/4096)*4096;
-
-            sc_rv = remote_syscall(SYS_mmap, 0, asize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-            if (sc_rv < 0 && sc_rv > -4095) {
-                LOGE << "Injected mmap failed with error: " << -sc_rv;
-                m_alloc_start = nullptr;
-                m_alloc_capacity = 0;
-                return nullptr;
-            }
-
-            m_alloc_start = reinterpret_cast<VPTR>(sc_rv);
-            m_alloc_len = 0;
-        }
-
-        m_alloc_capacity = asize;
+    if (sc_rv < 0 && sc_rv > -4095) {
+        LOGE << "Injected mmap failed with error: " << -sc_rv;
+        return false;
     }
 
-    VPTR rv = m_alloc_start + m_alloc_len;
-    m_alloc_len += size;
-    return rv;
+    m_alloc_start = reinterpret_cast<VPTR>(sc_rv);
+    return true;
+}
+
+bool DFInstanceLinux::mremap(size_t new_size) {
+    long sc_rv = remote_syscall(SYS_mremap, reinterpret_cast<long>(m_alloc_start), m_alloc_capacity, new_size, 0, 0, 0);
+
+    if (sc_rv < 0 && sc_rv > -4095) {
+        LOGE << "Injected mremap failed with error: " << -sc_rv;
+        return false;
+    }
+
+    return true;
 }

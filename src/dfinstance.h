@@ -273,6 +273,13 @@ protected:
 
     static PID select_pid(QSet<PID> pids);
 
+    VPTR alloc_chunk(size_t size);
+    virtual bool mmap(size_t size) = 0;
+    virtual bool mremap(size_t new_size) = 0;
+    VPTR m_alloc_start;
+    size_t m_alloc_len;
+    size_t m_alloc_capacity;
+
 private slots:
     void heartbeat();
 

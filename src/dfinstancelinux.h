@@ -44,6 +44,8 @@ public:
 
 protected:
     bool set_pid();
+    virtual bool mmap(size_t size);
+    virtual bool mremap(size_t new_size);
 
 private:
     int wait_for_stopped();
@@ -52,11 +54,7 @@ private:
                           long arg0 = 0, long arg1 = 0, long arg2 = 0,
                           long arg3 = 0, long arg4 = 0, long arg5 = 0);
 
-    VPTR alloc_chunk(size_t size);
-
     QFile m_memory_file;
-    VPTR m_alloc_start;
-    size_t m_alloc_len, m_alloc_capacity;
     bool m_warned_pvm;
 };
 

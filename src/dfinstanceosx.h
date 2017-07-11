@@ -49,6 +49,8 @@ public:
 protected:
     vm_map_t m_task;
     bool set_pid();
+    virtual bool mmap(size_t size);
+    virtual bool mremap(size_t new_size);
 
 private:
     VPTR alloc_chunk(size_t size);

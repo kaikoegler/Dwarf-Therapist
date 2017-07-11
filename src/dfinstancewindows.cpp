@@ -58,15 +58,15 @@ DFInstanceWindows::~DFInstanceWindows() {
     CloseHandle(m_proc);
 }
 
-static QString get_last_error() {
-    LPWSTR bufPtr = NULL;
+static QString handle_error(QString pre_string) {
     DWORD err = GetLastError();
+    LPWSTR bufPtr = NULL;
     FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                    FORMAT_MESSAGE_FROM_SYSTEM |
                    FORMAT_MESSAGE_IGNORE_INSERTS,
                    NULL, err, 0, (LPWSTR)&bufPtr, 0, NULL);
-    const QString result = bufPtr ? QString::fromWCharArray(bufPtr).trimmed()
-                                  : QString("Unknown Error %1").arg(err);
+    LOGE << pre_string << bufPtr ? QString::fromWCharArray(bufPtr).trimmed()
+                                 : QString("Unknown Error %1").arg(err);
     LocalFree(bufPtr);
     return result;
 }
@@ -127,18 +127,32 @@ size_t DFInstanceWindows::write_string(VPTR addr, const QString &str) {
     return bytes_written;
 }
 
+bool DFInstanceWindows::mmap(size_t size) {
+    m_alloc_start = VirtualAllocEx(m_proc, NULL, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!m_alloc_start)
+        handle_error("remote VirtualAllocEx map failed:");
+    return m_alloc_start;
+}
+
+bool DFInstanceWindows::mremap(size_t new_size) {
+    m_alloc_start = VirtualAllocEx(m_proc, m_alloc_start, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!m_alloc_start)
+        handle_error("remote VirtualAllocEx remap failed:");
+    return m_alloc_start;
+}
+
 size_t DFInstanceWindows::read_raw(VPTR addr, size_t bytes, void *buffer) {
     ZeroMemory(buffer, bytes);
     size_t bytes_read = 0;
     if (!ReadProcessMemory(m_proc, reinterpret_cast<LPCVOID>(addr), buffer, bytes, &bytes_read))
-        LOGE << "ReadProcessMemory failed:" << get_last_error();
+        handle_error("ReadProcessMemory failed:");
     return bytes_read;
 }
 
 size_t DFInstanceWindows::write_raw(VPTR addr, size_t bytes, const void *buffer) {
     size_t bytes_written = 0;
     if (!WriteProcessMemory(m_proc, reinterpret_cast<LPVOID>(addr), buffer, bytes, &bytes_written))
-        LOGE << "WriteProcessMemory failed:" << get_last_error();
+        handle_error("WriteProcessMemory failed:");
 
     return bytes_written;
 }
@@ -149,7 +163,7 @@ BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
     auto pids = reinterpret_cast<QSet<PID> *>(lParam);
     WCHAR classNameW[8];
     if (!GetClassNameW(hWnd, classNameW, sizeof(classNameW))) {
-        LOGE << "GetClassName failed:" << get_last_error();
+        handle_error("GetClassName failed:");
         return false;
     }
 
@@ -158,7 +172,7 @@ BOOL CALLBACK static enumWindowsProc(HWND hWnd, LPARAM lParam) {
 
     WCHAR windowName[16] = {0};
     if (!GetWindowTextW(hWnd, windowName, sizeof(windowName))) {
-        LOGE << "GetWindowText failed:" << get_last_error();
+        handle_error("GetWindowText failed:");
         return false;
     }
 
@@ -189,7 +203,7 @@ bool DFInstanceWindows::set_pid(){
 
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (snapshot == INVALID_HANDLE_VALUE) {
-        LOGE << "error creating toolhelp32 process snapshot:" << get_last_error();
+        handle_error("error creating toolhelp32 process snapshot:");
         return false;
     }
     
@@ -228,20 +242,20 @@ void DFInstanceWindows::find_running_copy() {
                          | PROCESS_VM_OPERATION
                          | PROCESS_VM_READ
                          | PROCESS_VM_WRITE, false, m_pid);
-    LOGI << "PROC HANDLE:" << m_proc;
     if (!m_proc) {
-        LOGE << "Error opening process!" << get_last_error();
+        handle_error("Error opening process:");
     }
+    LOGI << "PROC HANDLE:" << m_proc;
 
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_pid);
     if (snapshot == INVALID_HANDLE_VALUE) {
-        LOGE << "Error creating toolhelp32 snapshot!" << get_last_error();
+        handle_error("Error creating toolhelp32 snapshot:");
         return;
     } else {
         MODULEENTRY32 me32;
         me32.dwSize = sizeof(MODULEENTRY32);
         if (!Module32First(snapshot, &me32)) {
-            LOGE << "Error enumerating modules!" << get_last_error();
+            handle_error("Error enumerating modules:");
             return;
         } else {
             VPTR base_addr = (VPTR )me32.modBaseAddr;

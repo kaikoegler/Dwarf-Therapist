@@ -57,6 +57,8 @@ protected:
     HANDLE m_proc;
     QString calculate_checksum(const IMAGE_NT_HEADERS &pe_header);
     bool set_pid();
+    virtual bool mmap(size_t size);
+    virtual bool mremap(size_t new_size);
 };
 
 #endif // DFINSTANCE_H
