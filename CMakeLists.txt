@@ -81,7 +81,7 @@ add_executable(DwarfTherapist WIN32 MACOSX_BUNDLE
     src/uniform.cpp src/unitbelief.cpp src/unitemotion.cpp src/unithealth.cpp
     src/unitwound.cpp src/updater.cpp src/viewmanager.cpp src/word.cpp
     src/itemarmor.cpp src/itemdefuniform.h src/dwarfjob.h src/uniform.h src/contextmenuhelper.cpp src/cellcolordef.h src/mood.cpp src/labor.cpp src/subthoughttypes.cpp src/plandetail.h src/eventfilterlineedit.cpp src/roleaspect.h
-    src/bodypart.cpp
+    src/bodypart.cpp src/bodypartlayer.cpp
     thirdparty/qtcolorpicker-2.6/qtcolorpicker.cpp resources.qrc
     ${SOURCES})
 target_compile_features(DwarfTherapist PRIVATE cxx_generalized_initializers)

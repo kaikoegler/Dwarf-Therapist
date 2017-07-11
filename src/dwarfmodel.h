@@ -33,23 +33,6 @@ class GridView;
 class Squad;
 class ViewColumn;
 
-/*
-class CreatureGroup : public QStandardItem {
-    Q_OBJECT
-public:
-    CreatureGroup();
-    CreatureGroup(const QString &text);
-    CreatureGroup(const QIcon &icon, const QString &text);
-    virtual ~CreatureGroup();
-
-    QList<QStandardItem*> build_row();
-    void add_member(Dwarf *d);
-    int type() const {return QStandardItem::UserType + 1;}
-private:
-    QList<int> m_member_ids;
-};
-*/
-
 class DwarfModel : public QStandardItemModel {
     Q_OBJECT
 public:

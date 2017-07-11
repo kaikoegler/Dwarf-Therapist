@@ -618,12 +618,14 @@ QString StateTableView::ask_name(const QString &msg, const QString &str_name, co
                                              msg + tr(" Leave blank to reset to the default."), QLineEdit::Normal,
                                              tr(qPrintable(str_default)), &ok);
     if(ok){
-        if(new_name.length() > MAX_STR_LEN){
+#ifdef Q_OS_WIN
+        if(new_name.length() > 16){
             QMessageBox::warning(this, tr("Max Length Exceeded"),
                                  tr("Due to technical limitations, %1 must be under %2 characters "
-                                    "long. If you require a longer %1, you'll have to set it within Dwarf Fortress!").arg(str_name).arg(MAX_STR_LEN));
-            new_name.resize(MAX_STR_LEN);
+                                    "long. If you require a longer %1, you'll have to set it within Dwarf Fortress!").arg(str_name).arg(16));
+            new_name.resize(16);
         }
+#endif
         return new_name;
     }else{
         return QString();

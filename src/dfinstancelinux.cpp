@@ -43,7 +43,8 @@ struct iovec {
 DFInstanceLinux::DFInstanceLinux(QObject* parent)
     : DFInstanceNix(parent)
     , m_alloc_start(0)
-    , m_alloc_end(0)
+    , m_alloc_capacity(0)
+    , m_alloc_len(0)
     , m_warned_pvm(false)
 {
 }
@@ -271,7 +272,7 @@ void DFInstanceLinux::find_running_copy() {
     }
 
     m_alloc_start = 0;
-    m_alloc_end = 0;
+    m_alloc_len = 0;
 
     m_loc_of_dfexe = QString("/proc/%1/exe").arg(m_pid);
     m_df_dir = QDir(QFileInfo(QString("/proc/%1/cwd").arg(m_pid)).symLinkTarget());
@@ -371,38 +372,47 @@ long DFInstanceLinux::remote_syscall(int syscall_id,
 
 /* Memory allocation for strings using remote mmap. */
 
-VPTR DFInstanceLinux::mmap_area(VPTR start, size_t size) {
-    auto return_value = remote_syscall(SYS_mmap, reinterpret_cast<long>(start), size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-    // Raw syscalls can't use errno, so the error is in the result.
-    // No valid return value can be in the -4095..-1 range.
-    if (return_value < 0 && return_value >= -4095) {
-        LOGE << "Injected MMAP failed with error: " << -return_value;
-        return nullptr;
-    }
-
-    return reinterpret_cast<VPTR>(return_value);
-}
-
 VPTR DFInstanceLinux::alloc_chunk(size_t size) {
     if (size > 1048576) {
         return nullptr;
     }
-    if ((m_alloc_end - m_alloc_start) < size) {
-        int apages = (size*2 + 4095)/4096;
-        int asize = apages*4096;
+    if (size > m_alloc_capacity - m_alloc_len) {
+        size_t asize;
+        long sc_rv;
+        if (m_alloc_start) {
+            // grow exponentially until 1 MB, then linearly
+            asize = m_alloc_capacity >= 1048576 ? m_alloc_capacity + 1048576 : m_alloc_capacity * 2;
 
-        // Try to request contiguous allocation as a hint
-        VPTR new_block = mmap_area(m_alloc_end, asize);
-        if (!new_block)
-            return new_block;
+            sc_rv = remote_syscall(SYS_mremap, reinterpret_cast<long>(m_alloc_start), m_alloc_capacity, asize, 0, 0, 0);
 
-        if (new_block != m_alloc_end)
-            m_alloc_start = new_block;
-        m_alloc_end = new_block + asize;
+            if (sc_rv < 0 && sc_rv > -4095) {
+                LOGE << "Injected mremap failed with error: " << -sc_rv;
+                m_alloc_start = nullptr;
+            } else {
+                m_alloc_start = reinterpret_cast<VPTR>(sc_rv);
+            }
+        }
+
+        if (!m_alloc_start) {
+            asize = ((size*2 + 4095)/4096)*4096;
+
+            sc_rv = remote_syscall(SYS_mmap, 0, asize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+            if (sc_rv < 0 && sc_rv > -4095) {
+                LOGE << "Injected mmap failed with error: " << -sc_rv;
+                m_alloc_start = nullptr;
+                m_alloc_capacity = 0;
+                return nullptr;
+            }
+
+            m_alloc_start = reinterpret_cast<VPTR>(sc_rv);
+            m_alloc_len = 0;
+        }
+
+        m_alloc_capacity = asize;
     }
 
-    VPTR rv = m_alloc_start;
-    m_alloc_start += size;
+    VPTR rv = m_alloc_start + m_alloc_len;
+    m_alloc_len += size;
     return rv;
 }

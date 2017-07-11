@@ -140,7 +140,6 @@ private:
     QAction *m_clear;
     QAction *m_commit;
 
-    static const int MAX_STR_LEN = 16;
     QString ask_name(const QString &msg, const QString &str_name, const QString &str_default);
     QModelIndexList selected_units();
 

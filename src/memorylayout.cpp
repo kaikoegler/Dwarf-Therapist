@@ -113,17 +113,29 @@ void MemoryLayout::read_flags(const UNIT_FLAG_TYPE &flag_type){
 }
 
 uint MemoryLayout::string_buffer_offset() {
-    return m_offsets.value(MEM_LANGUAGE).value("string_buffer_offset", DFInstance::STRING_BUFFER_OFFSET);
+    return m_offsets.value(MEM_LANGUAGE).value("string_buffer_offset"
+#ifdef Q_OS_WIN
+            , 4
+#endif
+            );
 }
 
 uint MemoryLayout::string_length_offset() {
     return string_buffer_offset() +
-            m_offsets.value(MEM_LANGUAGE).value("string_length_offset", DFInstance::STRING_LENGTH_OFFSET);
+            m_offsets.value(MEM_LANGUAGE).value("string_length_offset"
+#ifdef Q_OS_WIN
+                   , 16
+#endif
+                   );
 }
 
 uint MemoryLayout::string_cap_offset() {
     return string_buffer_offset() +
-            m_offsets.value(MEM_LANGUAGE).value("string_cap_offset", DFInstance::STRING_CAP_OFFSET);
+            m_offsets.value(MEM_LANGUAGE).value("string_cap_offset"
+#ifdef Q_OS_WIN
+                    , 24
+#endif
+                    );
 }
 
 void MemoryLayout::set_address(const QString & key, uint value) {

@@ -52,11 +52,11 @@ private:
                           long arg0 = 0, long arg1 = 0, long arg2 = 0,
                           long arg3 = 0, long arg4 = 0, long arg5 = 0);
 
-    VPTR mmap_area(VPTR start, size_t size);
     VPTR alloc_chunk(size_t size);
 
     QFile m_memory_file;
-    VPTR m_alloc_start, m_alloc_end;
+    VPTR m_alloc_start;
+    size_t m_alloc_len, m_alloc_capacity;
     bool m_warned_pvm;
 };
 
