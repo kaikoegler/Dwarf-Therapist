@@ -13,6 +13,10 @@ include(CPack)
 include(InstallRequiredSystemLibraries)
 include_directories(src thirdparty/qtcolorpicker-2.6)
 
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(-DQT_MESSAGELOGCONTEXT)
+endif()
+
 if(WIN32)
     set(SOURCES ${SOURCES} DwarfTherapist.rc src/dfinstancewindows.cpp)
     set(LIBS user32 psapi)

@@ -293,7 +293,7 @@ void roleDialog::insert_pref_row(Preference *p){
 
     QTableWidgetItem *name = new QTableWidgetItem();
     name->setData(0,p->get_name());
-    name->setData(Qt::UserRole, vPtr<Preference>::asQVariant(p));
+    name->setData(Qt::UserRole, QVariant::fromValue(p));
     name->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     ui->tw_prefs->setItem(row,0,name);
 
@@ -385,7 +385,7 @@ void roleDialog::save_aspects(QTableWidget &table, QHash<QString, RoleAspect*> &
 void roleDialog::save_prefs(Role *r){
     for(int i= 0; i<ui->tw_prefs->rowCount(); i++){
         float weight = static_cast<QDoubleSpinBox*>(ui->tw_prefs->cellWidget(i,1))->value();
-        Preference *p = vPtr<Preference>::asPtr(ui->tw_prefs->item(i,0)->data(Qt::UserRole));
+        auto p = ui->tw_prefs->item(i,0)->data(Qt::UserRole).value<Preference *>();
         //save the weight of the preference for the next use
         p->pref_aspect->weight = fabs(weight);
         p->pref_aspect->is_neg = weight < 0 ? true : false;
@@ -546,7 +546,7 @@ void roleDialog::remove_pref(){
         if(ui->tw_prefs->item(i,0)->isSelected()){
             for(int j = 0; j < m_role->prefs.count(); j++){
                 if(m_role->prefs.at(j)->get_name().toLower() ==
-                        vPtr<Preference>::asPtr(ui->tw_prefs->item(i,0)->data(Qt::UserRole))->get_name().toLower()){
+                        ui->tw_prefs->item(i,0)->data(Qt::UserRole).value<Preference *>()->get_name().toLower()){
                     m_role->prefs.remove(j);
                     break;
                 }
@@ -1018,7 +1018,7 @@ void roleDialog::build_pref_tree(){
             //LOGW << "loading child " << j << " " << child_nodes->at(j);
             child = new QTreeWidgetItem(parent);
             child->setText(0, child_nodes->at(j)->get_name());
-            child->setData(0, Qt::UserRole, vPtr<Preference>::asQVariant(child_nodes->at(j)));
+            child->setData(0, Qt::UserRole, QVariant::fromValue<Preference *>(child_nodes->at(j)));
         }
 
         if(parent->childCount() > 0){
@@ -1083,7 +1083,7 @@ bool roleDialog::check_flag(Material *m, Preference *p, MATERIAL_FLAGS flag){
 
 void roleDialog::item_double_clicked(QTreeWidgetItem *item, int col){
     if(item->childCount() <= 0){
-        Preference *p = vPtr<Preference>::asPtr(item->data(col,Qt::UserRole));
+        Preference *p = item->data(col,Qt::UserRole).value<Preference *>();
         if(p && !m_role->has_preference(p->get_name())){
             insert_pref_row(p);
         }

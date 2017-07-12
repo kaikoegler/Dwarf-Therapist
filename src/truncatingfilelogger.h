@@ -26,13 +26,18 @@ http://www.opensource.org/licenses/mit-license.php
 #define TRUNCATINGFILELOGGER_H
 
 #include <QtDebug>
+#include "utils.h"
 
 #define TRACE qDebug()
-#define LOGV qInfo()
+#define LOGV qDebug()
 #define LOGD qInfo()
 #define LOGI qInfo()
 #define LOGW qWarning()
 #define LOGE qCritical()
 #define FATAL qFatal()
+
+static inline QDebug operator<<(QDebug debug, VPTR p) {
+    return debug << hexify(p);
+}
 
 #endif // TRUNCATINGFILELOGGER_H

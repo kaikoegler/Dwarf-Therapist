@@ -83,17 +83,6 @@ static inline QString capitalizeEach(const QString & word){
     return list.join(" ");
 }
 
-template <class T> class vPtr
-{
-public:
-    static inline T* asPtr(QVariant v){
-        return static_cast<T*>(v.value<void *>());
-    }
-    static inline QVariant asQVariant(T* ptr){
-        return qVariantFromValue(static_cast<void*>(ptr));
-    }
-};
-
 static inline QString embedPixmap(const QPixmap &img){
     QByteArray ba;
     QBuffer buffer(&ba);

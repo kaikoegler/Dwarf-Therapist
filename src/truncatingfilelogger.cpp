@@ -38,12 +38,12 @@ void init_global_logging(bool enable_debug) {
 #ifdef Q_OS_WIN
     output = new QFile("DwarfTherapist.log");
     if (!output->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-        qFatal(QString("Could not open log for writing: %1").arg(output->errorString()).toUtf8());
+        qFatal("Could not open log for writing: %s", output->errorString().toLocal8Bit().data());
     }
 #else
     output = new QFile();
     if (!output->open(stdout, QIODevice::WriteOnly | QIODevice::Text)) {
-        qFatal(QString("Could not open log for writing: %1").arg(output->errorString()).toUtf8());
+        qFatal("Could not open log for writing: %s", output->errorString().toLocal8Bit().data());
     }
 #endif
 }
