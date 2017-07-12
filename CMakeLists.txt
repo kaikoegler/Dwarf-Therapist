@@ -5,12 +5,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
+set(USE_MANUAL FALSE CACHE BOOL "Build the manual")
 
 find_package(Qt5 REQUIRED COMPONENTS Qml Widgets)
 
-include(UseLATEX)
-include(CPack)
-include(InstallRequiredSystemLibraries)
 include_directories(src thirdparty/qtcolorpicker-2.6)
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -32,7 +30,11 @@ elseif(UNIX)
     else()
         set(SOURCES ${SOURCES} src/dfinstancelinux.cpp)
 
-        add_latex_document(doc/manual/DwarfTherapist.tex INPUTS CMakeLists.txt IMAGE_DIRS doc/manual/images TARGET_NAME manual EXCLUDE_FROM_ALL)
+        if(USE_MANUAL)
+            include(UseLATEX)
+
+            add_latex_document(doc/manual/DwarfTherapist.tex INPUTS CMakeLists.txt IMAGE_DIRS doc/manual/images TARGET_NAME manual)
+        endif()
     endif()
 else()
     message(FATAL_ERROR "unsupported target")
