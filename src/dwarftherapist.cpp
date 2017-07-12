@@ -144,8 +144,6 @@ DFInstance* DwarfTherapist::get_DFInstance(){
 void DwarfTherapist::setup_logging() {
     QStringList args = arguments();
     init_global_logging(args.indexOf("-debug") != -1 || args.indexOf("-trace") != -1);
-    qSetMessagePattern("[%{time process}] <%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}> %{message} (%{file}:%{line})");
-    qInstallMessageHandler(global_message_handler);
 }
 
 QList<Dwarf*> DwarfTherapist::get_dwarves(){

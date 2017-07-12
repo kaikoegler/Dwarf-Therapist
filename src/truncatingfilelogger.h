@@ -30,6 +30,9 @@ http://www.opensource.org/licenses/mit-license.php
 
 #define TRACE qDebug()
 #define LOGV qDebug()
+#if QT_VERSION < 0x050500
+#define qInfo qWarning
+#endif
 #define LOGD qInfo()
 #define LOGI qInfo()
 #define LOGW qWarning()

@@ -24,14 +24,16 @@ http://www.opensource.org/licenses/mit-license.php
 */
 #include "truncatingfilelogger.h"
 #include "truncatingfilelogger_p.h"
-#include <QDateTime>
 #include <QFile>
 #include <QDebug>
 #include <QString>
-#include <memory>
 
 static QFile *output;
-static bool debug_enabled;
+static bool debug_enabled = true;
+
+#if QT_VERSION < 0x050400
+QString qMessageFormatString(QtMsgType type, const QMessageLogContext &context, const QString &str);
+#endif
 
 void init_global_logging(bool enable_debug) {
     debug_enabled = enable_debug;
@@ -46,6 +48,8 @@ void init_global_logging(bool enable_debug) {
         qFatal("Could not open log for writing: %s", output->errorString().toLocal8Bit().data());
     }
 #endif
+    qSetMessagePattern("[%{time process}] <%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}> %{message} (%{file}:%{line})");
+    qInstallMessageHandler(global_message_handler);
 }
 
 void global_message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
@@ -53,7 +57,11 @@ void global_message_handler(QtMsgType type, const QMessageLogContext &context, c
         abort();
 
     if (type != QtDebugMsg || debug_enabled) {
+#if QT_VERSION >= 0x050400
         output->write(qFormatLogMessage(type, context, msg).toLocal8Bit());
+#else
+        output->write(qMessageFormatString(type, context, msg).toLocal8Bit());
+#endif
         output->write("\n");
         output->flush();
     }
