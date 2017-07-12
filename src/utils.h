@@ -29,7 +29,8 @@ THE SOFTWARE.
 #include <QBuffer>
 #include <QIODevice>
 #include <QString>
-#include <math.h>
+#include <cmath>
+#include "dwarftherapist.h"
 
 typedef char * VPTR;
 typedef ptrdiff_t VPTRDIFF;
@@ -103,8 +104,8 @@ static inline QString formatList(QStringList values){
     return ret_val;
 }
 
-static inline QString formatNumber(double value, bool useSI) {
-    if(useSI){
+static inline QString formatNumber(double value) {
+    if(DT->format_SI()){
         QString suffixes(QObject::tr("kMGT"));
         for(int idx = suffixes.length(); idx > 0; idx--){
             double unit = pow(1000,idx);
@@ -113,23 +114,6 @@ static inline QString formatNumber(double value, bool useSI) {
         }
     }
     return QString("%L1").arg(value);
-}
-
-static inline QColor read_color(QString const &col){
-    QColor c(Qt::gray);
-    bool ok;
-    if(col.startsWith("0x")){
-        int a = 255;
-        if(col.length() >= 8){
-            if(col.length() >= 10)
-                a = col.mid(8, 2).toInt(&ok, 16);
-            c = QColor(col.mid(2,6).toInt(&ok, 16));
-            c.setAlpha(a);
-        }
-    }else{
-        c = QVariant(col).value<QColor>();
-    }
-    return c;
 }
 
 #endif // UTILS_H

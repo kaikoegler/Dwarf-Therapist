@@ -156,12 +156,12 @@ bool Skill::operator<(const Skill *s2) const {
 }
 
 QString Skill::exp_summary() const {
-    QString xp_str = formatNumber(m_actual_exp,DT->format_SI());
+    QString xp_str = formatNumber(m_actual_exp);
 
     if (m_capped_level >= 20) {
         return xp_str.append(" xp");
     }
-    QString xp_next = formatNumber(m_exp_for_next_level,DT->format_SI());
+    QString xp_next = formatNumber(m_exp_for_next_level);
 
     return QString("%1/%2 xp (%L3%)")
             .arg(xp_str)

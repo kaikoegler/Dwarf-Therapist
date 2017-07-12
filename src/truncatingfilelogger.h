@@ -25,8 +25,8 @@ http://www.opensource.org/licenses/mit-license.php
 #ifndef TRUNCATINGFILELOGGER_H
 #define TRUNCATINGFILELOGGER_H
 
-#include <QtDebug>
 #include "utils.h"
+#include <QDebug>
 
 #define TRACE qDebug()
 #define LOGV qDebug()

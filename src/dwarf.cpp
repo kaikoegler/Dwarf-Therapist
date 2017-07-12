@@ -1860,7 +1860,7 @@ void Dwarf::read_emotions(VPTR personality_base){
 
     m_happiness_desc = QString("<b>%1</b> (Stress: %2)")
             .arg(happiness_name(m_happiness))
-            .arg(formatNumber(m_stress_level,DT->format_SI()));
+            .arg(formatNumber(m_stress_level));
 
     TRACE << "\tRAW STRESS LEVEL:" << m_stress_level;
     TRACE << "\tHAPPINESS:" << happiness_name(m_happiness);
