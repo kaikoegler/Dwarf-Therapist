@@ -64,6 +64,7 @@ THE SOFTWARE.
 #include "viewcolumncolors.h"
 #include "viewcolumnsetcolors.h"
 #include "vieweditordialog.h"
+#include "dwarftherapist.h"
 
 #include <QMessageBox>
 #include <QMenu>

@@ -4,9 +4,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 find_package(Qt5 REQUIRED COMPONENTS Qml Widgets)
 
+include(UseLATEX)
 include(CPack)
 include(InstallRequiredSystemLibraries)
 include_directories(src thirdparty/qtcolorpicker-2.6)
@@ -26,15 +28,7 @@ elseif(UNIX)
     else()
         set(SOURCES ${SOURCES} src/dfinstancelinux.cpp)
 
-        #    system("printf 'Checking for pdflatex... '; if ! command -v pdflatex; then echo 'not found'; exit 1; fi") {
-        #        manual.depends = "$$PWD/doc/Dwarf Therapist.tex" $$PWD/doc/images/*
-        #        manual.commands = [ -d doc ] || mkdir doc;
-        #        manual.commands += TEXINPUTS=".:$$PWD/doc/images:" pdflatex -output-directory=doc "$<"
-        #        manual.target = "doc/Dwarf Therapist.pdf"
-        #        QMAKE_EXTRA_TARGETS += manual
-        #        POST_TARGETDEPS += "$$manual.target"
-        #        doc.files += "$$manual.target"
-        #    }
+        add_latex_document(doc/manual/DwarfTherapist.tex INPUTS CMakeLists.txt IMAGE_DIRS doc/manual/images TARGET_NAME manual EXCLUDE_FROM_ALL)
     endif()
 else()
     message(FATAL_ERROR "unsupported target")

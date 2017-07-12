@@ -29,8 +29,10 @@ THE SOFTWARE.
 #include "bodypartdamage.h"
 #include "unitwound.h"
 
-class DFInstance;
+#include <QSettings>
 
+class Dwarf;
+class DFInstance;
 class HealthCategory;
 class HealthInfo;
 

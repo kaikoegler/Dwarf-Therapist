@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setSetuidAllowed(true);
 #endif
 
-    //QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
     DwarfTherapist d(argc, argv);
     return d.exec();
 }

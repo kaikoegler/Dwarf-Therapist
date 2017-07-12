@@ -24,6 +24,7 @@ THE SOFTWARE.
 #include "attribute.h"
 #include "belief.h"
 #include "dwarfjob.h"
+#include "dwarftherapist.h"
 #include "emotion.h"
 #include "labor.h"
 #include "laboroptimizerplan.h"
@@ -56,8 +57,7 @@ GameDataReader::GameDataReader(QObject *parent)
         if(m_data_settings->childGroups().count() <= 0){
             QString err = tr("Dwarf Therapist cannot run because game_data.ini could not be found!");
             QMessageBox::critical(0,tr("Missing File"),err);
-            FATAL << err;
-            exit(1);
+            qFatal(err.toUtf8());
         }
     }
 
@@ -67,8 +67,7 @@ GameDataReader::GameDataReader(QObject *parent)
         if(!m_data_settings->childGroups().contains(key)){
             QString err = tr("Dwarf Therapist cannot run because game_data.ini is missing [%1], a critical section!").arg(key);
             QMessageBox::critical(0,tr("Missing Section"),err);
-            FATAL << err;
-            break;
+            qFatal(err.toUtf8());
         }
     }
 

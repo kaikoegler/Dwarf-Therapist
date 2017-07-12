@@ -78,7 +78,6 @@ public:
     bool show_skill_roles() const {return m_show_skill_roles;}
     bool format_SI() const {return m_use_SI;}
 
-    LogManager *get_log_manager() {return m_log_mgr;}
     DFInstance *get_DFInstance();
 
     QSharedPointer<CellColorDef> get_global_color(GLOBAL_COLOR_TYPES gc_type);
@@ -146,7 +145,6 @@ private:
     bool m_show_skill_learn_rates;
     bool m_arena_mode;
 
-    LogManager *m_log_mgr;
     QHash<GLOBAL_COLOR_TYPES,QSharedPointer<CellColorDef> > m_colors;
     QHash<DWARF_HAPPINESS,QColor> m_happiness_colors;
 

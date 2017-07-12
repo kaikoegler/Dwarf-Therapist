@@ -538,14 +538,12 @@ void DFInstance::load_role_ratings(){
     LOGV << "     - loaded preference role data in" << tr.elapsed() << "ms";
 
     float role_rating_avg = 0;
-    bool calc_role_avg = (DT->get_log_manager()->get_appender("core")->minimum_level() <= LL_VERBOSE);
 
     QVector<double> all_role_ratings;
     foreach(Dwarf *d, m_labor_capable_dwarves){
         foreach(double rating, d->calc_role_ratings()){
             all_role_ratings.append(rating);
-            if(calc_role_avg)
-                role_rating_avg+=rating;
+            role_rating_avg+=rating;
         }
     }
     LOGV << "Role Display Info:";
@@ -555,23 +553,21 @@ void DFInstance::load_role_ratings(){
     }
     LOGV << "     - loaded role display data in" << tr.elapsed() << "ms";
 
-    if(DT->get_log_manager()->get_appender("core")->minimum_level() <= LL_VERBOSE){
-        float max = 0;
-        float min = 0;
-        float median = 0;
-        if(all_role_ratings.count() > 0){
-            qSort(all_role_ratings);
-            role_rating_avg /= all_role_ratings.count();
-            max = all_role_ratings.last();
-            min = all_role_ratings.first();
-            median = RoleCalcBase::find_median(all_role_ratings);
-        }
-        LOGV << "Overall Role Rating Stats";
-        LOGV << "     - Min: " << min;
-        LOGV << "     - Max: " << max;
-        LOGV << "     - Median: " << median;
-        LOGV << "     - Average: " << role_rating_avg;
+    float max = 0;
+    float min = 0;
+    float median = 0;
+    if(all_role_ratings.count() > 0){
+        qSort(all_role_ratings);
+        role_rating_avg /= all_role_ratings.count();
+        max = all_role_ratings.last();
+        min = all_role_ratings.first();
+        median = RoleCalcBase::find_median(all_role_ratings);
     }
+    LOGV << "Overall Role Rating Stats";
+    LOGV << "     - Min: " << min;
+    LOGV << "     - Max: " << max;
+    LOGV << "     - Median: " << median;
+    LOGV << "     - Average: " << role_rating_avg;
 
 }
 

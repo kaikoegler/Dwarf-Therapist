@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "dwarf.h"
 #include "gamedatareader.h"
 #include "labor.h"
+#include "dwarftherapist.h"
 
 #include <QMessageBox>
 #include <QSettings>

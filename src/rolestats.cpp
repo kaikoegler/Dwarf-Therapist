@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "rolecalcminmax.h"
 #include "rolecalcrecenter.h"
 #include "truncatingfilelogger.h"
+#include "dwarftherapist.h"
 
 using std::unique_copy;
 using std::distance;
@@ -89,17 +90,13 @@ void RoleStats::set_mode(const QVector<double> &unsorted){
         LOGV << "     - using basic range transform";
     }
 
-    bool print_debug_info = (DT->get_log_manager()->get_appender("core")->minimum_level() <= LL_VERBOSE);
-
-    if(print_debug_info){
-        RoleCalcBase tmp(m_valid);
-        double tmp_total = 0;
-        foreach(double val, m_valid){
-            tmp_total += tmp.base_rating(val);
-        }
-        double tmp_avg = tmp_total / m_valid.size();
-        LOGV << "     - base avg:" << tmp_avg;
+    RoleCalcBase tmp(m_valid);
+    double tmp_total = 0;
+    foreach(double val, m_valid){
+        tmp_total += tmp.base_rating(val);
     }
+    double tmp_avg = tmp_total / m_valid.size();
+    LOGV << "     - base avg:" << tmp_avg;
 
     double total = 0.0;
     if(skewed && !m_calc.isNull()){
@@ -112,22 +109,20 @@ void RoleStats::set_mode(const QVector<double> &unsorted){
         LOGV << "     - null rating:" << m_null_rating;
     }
 
-    if(print_debug_info){
-        if(total <= 0){
-            foreach(double val, m_valid){
-                total += get_rating(val);
-            }
+    if(total <= 0){
+        foreach(double val, m_valid){
+            total += get_rating(val);
         }
-        if(m_null_rating != -1)
-            total += ((m_total_count - valid_size) * m_null_rating);
-        LOGV << "     - total raw values:" << m_total_count;
-        LOGV << "     - median raw values:" << m_median;
-        LOGV << "     - average of valid raw values:" << accumulate(m_valid.begin(),m_valid.end(),0.0) /  valid_size;
-        LOGV << "     - min raw valid value:" << m_valid.first() << "max raw valid value:" << m_valid.last();
-        LOGV << "     - min rating:" << (m_null_rating > 0 ? m_null_rating : get_rating(m_valid.first())) << "max rating:" << get_rating(m_valid.last());
-        LOGV << "     - average of final ratings:" << (total / m_total_count);
-        LOGV << "     ------------------------------";
     }
+    if(m_null_rating != -1)
+        total += ((m_total_count - valid_size) * m_null_rating);
+    LOGV << "     - total raw values:" << m_total_count;
+    LOGV << "     - median raw values:" << m_median;
+    LOGV << "     - average of valid raw values:" << accumulate(m_valid.begin(),m_valid.end(),0.0) /  valid_size;
+    LOGV << "     - min raw valid value:" << m_valid.first() << "max raw valid value:" << m_valid.last();
+    LOGV << "     - min rating:" << (m_null_rating > 0 ? m_null_rating : get_rating(m_valid.first())) << "max rating:" << get_rating(m_valid.last());
+    LOGV << "     - average of final ratings:" << (total / m_total_count);
+    LOGV << "     ------------------------------";
 }
 
 double RoleStats::get_rating(double val){

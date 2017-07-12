@@ -46,6 +46,7 @@ class Caste;
 class Uniform;
 class HistFigure;
 class UnitEmotion;
+class QTreeWidgetItem;
 
 class Dwarf : public QObject
 {
@@ -739,7 +740,7 @@ private:
     void read_inventory();
     void read_uniform();
     void check_availability();
-    void set_validation(QString reason, bool *valid_var = 0, bool valid = false, LOG_LEVEL l = LL_INFO);
+    void set_validation(QString reason, bool *valid_var = 0, bool valid = false);
 
     QString get_gender_icon_suffix(bool male_flag, bool female_flag, bool checking_interest = false);
 

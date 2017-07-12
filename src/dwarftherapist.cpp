@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include "ui_mainwindow.h"
 #include "memorylayout.h"
 #include "truncatingfilelogger.h"
+#include "truncatingfilelogger_p.h"
 #include "viewmanager.h"
 #include "dwarfstats.h"
 #include "defaultfonts.h"
@@ -61,7 +62,6 @@ DwarfTherapist::DwarfTherapist(int &argc, char **argv)
     , m_multiple_castes(false)
     , m_show_skill_learn_rates(false)
     , m_arena_mode(false) //manually set this to true to do arena testing (very hackish, all units will be animals)
-    , m_log_mgr(0)
 {
     setup_logging();
     load_translator();
@@ -112,7 +112,6 @@ DwarfTherapist::~DwarfTherapist(){
     delete m_user_settings;
     delete m_options_menu;
     delete m_main_window;
-    delete m_log_mgr;
 }
 
 void DwarfTherapist::setup_search_paths() {
@@ -144,46 +143,9 @@ DFInstance* DwarfTherapist::get_DFInstance(){
 
 void DwarfTherapist::setup_logging() {
     QStringList args = arguments();
-    bool debug_logging = args.indexOf("-debug") != -1;
-    bool trace_logging = args.indexOf("-trace") != -1;
-
-    LOG_LEVEL min_level = LL_INFO;
-
-#ifdef QT_DEBUG
-    min_level = LL_DEBUG;
-#endif
-
-    if (trace_logging) {
-        min_level = LL_TRACE;
-    } else if (debug_logging) {
-        min_level = LL_DEBUG;
-    }
-
-    //setup logging
-    m_log_mgr = new LogManager(this);
-    TruncatingFileLogger *log = m_log_mgr->add_logger(
-            #ifdef Q_OS_LINUX
-                ""
-            #else
-                "log/run.log"
-            #endif
-                );
-    if (log) {
-        LogAppender *app = m_log_mgr->add_appender("core", log, LL_TRACE);
-        if (app) {
-            Version v; // current version
-            LOGI << "Dwarf Therapist" << v.to_string() << "starting normally.";
-            LOGI << "Runtime QT Version" << qVersion();
-            //app->set_minimum_level(min_level);
-            app->set_minimum_level(min_level);
-        } else {
-            qCritical() << "Could not open logfile!";
-            qApp->exit(1);
-        }
-    } else {
-        qCritical() << "Could not open logfile!";
-        qApp->exit(1);
-    }
+    init_global_logging(args.indexOf("-debug") != -1 || args.indexOf("-trace") != -1);
+    qSetMessagePattern("[%{time process}] <%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}> %{message} (%{file}:%{line})");
+    qInstallMessageHandler(global_message_handler);
 }
 
 QList<Dwarf*> DwarfTherapist::get_dwarves(){

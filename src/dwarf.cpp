@@ -235,17 +235,17 @@ void Dwarf::read_data() {
     bool validated = true;
     //attempt to do some initial filtering on the civilization
     if(civ_id != m_df->dwarf_civ_id()){
-        set_validation("doesn't belong to our civilization",&validated,false,LL_DEBUG);
+        set_validation("doesn't belong to our civilization",&validated,false);
     }else if(!m_is_animal){
         //filter out babies/children based on settings
         if(DT->hide_non_adults() && !is_adult()){
-            set_validation("IGNORING child/baby",&validated,false,LL_DEBUG);
+            set_validation("IGNORING child/baby",&validated,false);
         }
         //filter out any non-mercenary visitors if necessary
         m_is_citizen = m_df->fortress()->hist_figures().contains(m_histfig_id);
         TRACE << "HIST_FIG_ID:" << m_histfig_id;
         if(DT->hide_non_citizens() && !m_is_citizen && !m_raw_profession->is_military()){
-            set_validation("IGNORING visitor/guest",&validated,false,LL_DEBUG);
+            set_validation("IGNORING visitor/guest",&validated,false);
         }
     }
 
@@ -363,16 +363,12 @@ bool Dwarf::validate(){
     }
 }
 
-void Dwarf::set_validation(QString reason, bool *valid_var, bool valid, LOG_LEVEL l){
+void Dwarf::set_validation(QString reason, bool *valid_var, bool valid){
     QString msg = QString("%1 %2 name:%3 id:%4 reason:%5")
             .arg(valid ? tr("FOUND") : tr("IGNORING"))
             .arg(race_name()).arg(m_nice_name).arg(m_id).arg(reason);
 
-    if(l == LL_DEBUG){
-        LOGD << msg;
-    }else{
-        LOGI << msg;
-    }
+    LOGI << msg;
     if(valid_var)
         *valid_var = valid;
 }
