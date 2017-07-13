@@ -42,6 +42,7 @@ THE SOFTWARE.
 #include "dtstandarditem.h"
 #include "cellcolordef.h"
 #include <QMessageBox>
+#include <QSettings>
 #include <QToolTip>
 #include <QTranslator>
 #include <QTimer>
@@ -50,6 +51,8 @@ const QString DwarfTherapist::m_url_homepage = QString("https://github.com/%1/%2
 
 DwarfTherapist::DwarfTherapist(int &argc, char **argv)
     : QApplication(argc, argv)
+    , applicationName("Dwarf Therapist")
+    , organizationName("UDP Software")
     , m_user_settings(0)
     , m_main_window(0)
     , m_options_menu(0)
@@ -63,12 +66,14 @@ DwarfTherapist::DwarfTherapist(int &argc, char **argv)
     , m_show_skill_learn_rates(false)
     , m_arena_mode(false) //manually set this to true to do arena testing (very hackish, all units will be animals)
 {
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+
     setup_logging();
     load_translator();
     setup_search_paths();
 
     TRACE << "Creating settings object";
-    m_user_settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, COMPANY, PRODUCT, this);
+    m_user_settings = new QSettings(this);
 
     TRACE << "Creating options menu";
     m_options_menu = new OptionsMenu;
