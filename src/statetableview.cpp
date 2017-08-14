@@ -658,7 +658,12 @@ void StateTableView::super_labor_from_dwarf(){
 
 void StateTableView::apply_custom_profession() {
     QAction *a = qobject_cast<QAction*>(QObject::sender());
-    CustomProfession *cp = DT->get_custom_profession(a->text());
+
+    // Workaround: on its way the QAction's text gained a "&", remove it
+    QString s = a->text();
+    s.replace(QString("&"), QString(""));
+    CustomProfession *cp = DT->get_custom_profession(s);
+
     if (!cp)
         return;
 
